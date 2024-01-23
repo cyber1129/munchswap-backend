@@ -1,0 +1,136 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+enum WalletTypes {
+  unisat
+  hiro
+  xverse
+}
+
+enum Role {
+  customer
+  admin
+}
+
+enum FriendStatus {
+  pending
+  friend
+  blocked
+  ignore
+}
+
+enum OfferStatus {
+  created // created the psbt
+  signed //buy signed the psbt
+  accepted // owner signed the psbt 
+  pushed // combine and pushed
+  failed // failed when push transaction
+  canceled // canceled by owner
+}
+
+enum ActivityStatus {
+  created
+  completed
+  removed
+}
+
+Table user {
+  id integer [pk]
+  uuid varchar
+  email varchar
+  name varchar
+  bio timestamp
+  website varchar
+  twitter varchar
+  facebook varchar
+  address varchar
+  paymentAddress varchar
+  pubkey varchar
+  walletType WalletTypes
+  isRegistered boolean
+  role Role
+}
+
+Table buy_now_activity {
+  id integer [pk]
+  uuid varchar
+  user_id integer [ref: > user.id]
+  price double
+  inscription_id integer [ref:> inscription.id]
+  status ActivityStatus
+  expiredAt datetime
+}
+
+Table buy_now_offer {
+  id integer [pk]
+  uuid varchar
+  buy_now_activity_id integer [ref: > buy_now_activity.id]
+  user_id int [ref: > user.id]
+  price double
+  status OfferStatus
+  psbt varchar
+  user_signed_psbt varchar
+  buyser_signed_psbt varchar
+  is_read boolean
+}
+
+Table collection {
+  id integer [pk]
+  uuid varchar
+  name varchar
+  image_url varchar
+  description varchar
+  website varchar
+  twitter varchar
+  discord varchar
+}
+
+Table inscription {
+  id integer [pk]
+  uuid varchar
+  inscription_id varchar
+  collection_id integer [ref: > collection.id]
+}
+
+Table swap_offer {
+  id integer [pk]
+  uuid varchar
+  buy_now_activity_id integer [ref: > buy_now_activity.id]
+  user_id int [ref: > user.id]
+  price double
+  status OfferStatus
+  psbt varchar
+  user_signed_psbt varchar
+  buyser_signed_psbt varchar
+  is_read boolean
+  expiredAt datetime
+}
+
+Table follow {
+  id integer [pk]
+  uuid varchar
+  follower_id integer [ref: > user.id]
+  following_id integer [ref: > user.id]
+}
+
+Table sign_message {
+  id integer [pk]
+  uuid varchar
+  address varchar
+  mesage varchar
+}
+
+Table swap_inscriptions {
+  id integer [pk]
+  uuid varchar
+  swap_offer_id integer [ref: > swap_offer.id]
+  inscriptionId integer [ref: > inscription.id]
+}
+
+Table friend {
+  id integer [pk]
+  uuid varchar
+  sender_id integer [ref:> user.id]
+  receiver_id integer [ref:> user.id]
+  status FriendStatus
+}

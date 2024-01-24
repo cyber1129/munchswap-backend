@@ -130,6 +130,10 @@ class EnvironmentVariables {
   @IsInt()
   @Min(0)
   RPC_PORT: number;
+
+  @IsString()
+  @MinLength(1)
+  BIS_KEY: string;
 }
 
 export function validate(config: Record<string, unknown>) {

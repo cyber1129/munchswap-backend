@@ -105,8 +105,6 @@ export class UserService {
       );
 
       this.btcPrice = Number(response.data.price);
-
-      this.logger.log(`btc price ${this.btcPrice}`)
     } catch (err) {
       const axiosErr = err as AxiosError;
       this.logger.error('fetch btc price error', axiosErr.response?.data);

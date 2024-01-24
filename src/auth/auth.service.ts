@@ -8,6 +8,7 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { generateSlug } from 'random-word-slugs';
+import { Verifier } from 'bip322-js';
 
 import { User } from '@src/user/user.entity';
 import { UserService } from '@src/user/user.service';
@@ -51,14 +52,14 @@ export class AuthService {
     if (this.network !== 'mainnet' && !body.address.startsWith('tb1p'))
       throw new BadRequestException('Wrong network');
 
+    const message = await this.getSignMessage(body.address);
+
+    await this.generateSignMessage(body.address)
+
     if (this.network === 'mainnet') {
-      const message = await this.getSignMessage(body.address);
-      const res = await this.checkBip322Signature(
-        body.address,
-        body.signature,
-        message,
-      );
-      if (res === false)
+      const validity = Verifier.verifySignature(body.address, message, body.signature);
+
+      if (validity === false)
         throw new BadRequestException('The signature is invalid');
     }
 
@@ -71,7 +72,7 @@ export class AuthService {
         isRegistered: user.isRegistered,
       };
     const savedUser = await this.userService.create(body);
-    
+
     return {
       address: savedUser.address,
       uuid: savedUser.uuid,

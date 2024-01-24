@@ -98,18 +98,15 @@ export class UserService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async fetchBtcPrice(): Promise<void> {
+
     try {
       const response = await axios.get(
-        'https://api.coingecko.com/api/v3/simple/price',
-        {
-          params: {
-            ids: 'bitcoin',
-            vs_currencies: 'usd',
-          },
-        },
+        'https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT'
       );
 
-      this.btcPrice = Number(response.data.bitcoin.usd);
+      this.btcPrice = Number(response.data.price);
+
+      this.logger.log(`btc price ${this.btcPrice}`)
     } catch (err) {
       const axiosErr = err as AxiosError;
       this.logger.error('fetch btc price error', axiosErr.response?.data);
@@ -122,11 +119,11 @@ export class UserService {
 
   async getTotalSalesByUserId(userId: number[]): Promise<
     | {
-        address: string;
-        name: string;
-        swap_sales: number;
-        buy_now_sales: number;
-      }[]
+      address: string;
+      name: string;
+      swap_sales: number;
+      buy_now_sales: number;
+    }[]
     | null
   > {
     const res = await this.connection.query(`

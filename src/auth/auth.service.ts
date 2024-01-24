@@ -18,10 +18,6 @@ import { SignMessageRepository } from './sign-message.repository';
 
 @Injectable()
 export class AuthService {
-  private rpcUserName: string;
-  private rpcHost: string;
-  private rpcPassword: string;
-  private rpcPort: number;
   private network: string;
 
   constructor(
@@ -29,14 +25,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly signMessageRepository: SignMessageRepository,
-    private readonly configService: ConfigService,
-  ) {
-    this.rpcUserName = this.configService.get('rpcConfig.rpcUserName');
-    this.rpcHost = this.configService.get('rpcConfig.rpcHost');
-    this.rpcPassword = this.configService.get('rpcConfig.rpcPassword');
-    this.rpcPort = this.configService.get('rpcConfig.rpcPort');
-    this.network = this.configService.get('psbtConfig.network');
-  }
+  ) {}
 
   async login(user: Partial<User>) {
     const accessToken = await this.createAccessToken(user);
@@ -54,10 +43,14 @@ export class AuthService {
 
     const message = await this.getSignMessage(body.address);
 
-    await this.generateSignMessage(body.address)
+    await this.generateSignMessage(body.address);
 
     if (this.network === 'mainnet') {
-      const validity = Verifier.verifySignature(body.address, message, body.signature);
+      const validity = Verifier.verifySignature(
+        body.address,
+        message,
+        body.signature,
+      );
 
       if (validity === false)
         throw new BadRequestException('The signature is invalid');
@@ -124,40 +117,5 @@ export class AuthService {
       throw new BadRequestException('Can not find sign message');
 
     return signMessage.message;
-  }
-
-  async checkBip322Signature(
-    address: string,
-    signature: string,
-    bipMessage,
-  ): Promise<boolean> {
-    const data = {
-      jsonrpc: '1.0',
-      id: 'curltest',
-      method: 'verifymessage',
-      params: [address, signature, bipMessage],
-    };
-    const config = {
-      headers: {
-        'content-type': 'text/plain',
-      },
-      auth: {
-        username: this.rpcUserName,
-        password: this.rpcPassword,
-      },
-    };
-
-    try {
-      const res = await axios.post(
-        `https://${this.rpcHost}:${this.rpcPort}/`,
-        data,
-        config,
-      );
-
-      return res.data.result;
-    } catch (err) {
-
-      return false;
-    }
   }
 }

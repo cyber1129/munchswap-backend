@@ -26,7 +26,6 @@ import { FileModule } from './file/file.module';
 import { SearchModule } from './search/search.module';
 import { FriendModule } from './friend/friend.module';
 import fileConfig from './config/file.config';
-import rpcConfig from './config/rpc.config';
 
 EnvHelper.verifyNodeEnv();
 
@@ -36,14 +35,7 @@ EnvHelper.verifyNodeEnv();
     ConfigModule.forRoot({
       envFilePath: EnvHelper.getEnvFilePath(),
       isGlobal: true,
-      load: [
-        appConfig,
-        databaseConfig,
-        jwtConfig,
-        psbtConfig,
-        fileConfig,
-        rpcConfig,
-      ],
+      load: [appConfig, databaseConfig, jwtConfig, psbtConfig, fileConfig],
       validate: validate,
     }),
     TypeOrmModule.forRootAsync({

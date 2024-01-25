@@ -117,22 +117,6 @@ class EnvironmentVariables {
 
   @IsString()
   @MinLength(1)
-  RPC_PASSWORD: string;
-
-  @IsString()
-  @MinLength(1)
-  RPC_USERNAME: string;
-
-  @IsString()
-  @MinLength(1)
-  RPC_HOST: string;
-
-  @IsInt()
-  @Min(0)
-  RPC_PORT: number;
-
-  @IsString()
-  @MinLength(1)
   BIS_KEY: string;
 }
 

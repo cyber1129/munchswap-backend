@@ -12,7 +12,7 @@ export class SearchController {
 
   @ApiOperation({
     description: `Get owned inscription infos`,
-    tags: ['Inscription'],
+    tags: ['Search'],
   })
   @ApiResponse(ApiResponseHelper.success(SearchResult, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))

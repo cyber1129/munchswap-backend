@@ -205,15 +205,10 @@ export class SwapOfferService {
   ): Promise<string> {
     const seller = await this.userService.findByAddress(userAddress);
 
-    let psbt = body.psbt;
-    if (body.walletType === WalletTypes.XVERSE) {
-      psbt = this.psbtService.convertBase64ToHexed(body.psbt);
-    }
-
     const swapOffer = await this.swapOfferRepository.findOne({
       where: {
-        psbt,
-        seller: seller,
+        psbt: body.psbt,
+        seller: { id: seller.id },
       },
     });
 
@@ -223,7 +218,7 @@ export class SwapOfferService {
     const signedPsbt = body.signedPsbt;
 
     await this.swapOfferRepository.update(
-      { psbt },
+      { psbt: body.psbt },
       {
         sellerSignedPsbt: signedPsbt,
         status: OfferStatus.ACCEPTED,

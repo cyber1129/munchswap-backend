@@ -117,7 +117,7 @@ class EnvironmentVariables {
 
   @IsString()
   @MinLength(1)
-  BIS_KEY: string;
+  UNISAT_KEY: string;
 }
 
 export function validate(config: Record<string, unknown>) {

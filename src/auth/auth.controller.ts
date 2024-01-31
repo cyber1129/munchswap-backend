@@ -1,19 +1,7 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  HttpStatus,
-  Param,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { AuthService } from '@src/auth/auth.service';
-import { User } from '@src/user/user.entity';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginUserDto } from './dto/login-user.dto';
 import { GetSignMessageDto } from './dto/get-sign-message.dto';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';

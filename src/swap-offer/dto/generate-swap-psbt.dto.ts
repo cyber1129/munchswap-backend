@@ -33,12 +33,12 @@ export class GenerateSwapPsbtDto {
     required: false,
     minimum: 1,
     maximum: 128,
-    description: 'Seller Inscription Id',
+    description: 'Buyer Inscription Id',
   })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(255)
-  sellerInscriptionId: string;
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMinSize(1)
+  sellerInscriptionIds: string[];
 
   @ApiProperty({
     example:

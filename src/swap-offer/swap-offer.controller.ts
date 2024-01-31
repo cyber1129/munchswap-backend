@@ -40,11 +40,11 @@ export class SwapOfferController {
   // async generatePsbt(
   //   @Request() req,
   //   @Body() body: GenerateSwapPsbtDto,
-  // ): Promise<{ psbt: string; inputCount }> {
-  //   const { psbt, inputCount } = await this.swapOfferService.generatePsbt({
+  // ): Promise<{ psbt: string }> {
+  //   const { psbt } = await this.swapOfferService.generatePsbt({
   //     buyerPubkey: body.buyerPubkey,
   //     buyerInscriptionIds: body.buyerInscriptionIds,
-  //     sellerInscriptionId: body.sellerInscriptionId,
+  //     sellerInscriptionIds: body.sellerInscriptionIds,
   //     recipient: req.user.address,
   //     walletType: body.walletType,
   //     price: body.price,
@@ -53,7 +53,6 @@ export class SwapOfferController {
 
   //   return {
   //     psbt,
-  //     inputCount,
   //   };
   // }
 

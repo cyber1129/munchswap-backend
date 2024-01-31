@@ -34,6 +34,86 @@ export class SwapOfferService {
     else this.network = testnet;
   }
 
+  // async generatePsbt({
+  //   buyerInscriptionIds,
+  //   sellerInscriptionIds,
+  //   buyer,
+  //   buyerPubkey,
+  //   walletType,
+  //   price = 0,
+  //   expiredIn,
+  // }: {
+  //   buyerInscriptionIds: string[];
+  //   sellerInscriptionIds: string[];
+  //   buyer: string;
+  //   buyerPubkey: string;
+  //   walletType: WalletTypes;
+  //   price?: number;
+  //   expiredIn: string;
+  // }) {
+  //   const user = await this.userService.findByAddress(buyer);
+
+  //   const { psbt, inputCount } = await this.psbtService.generateSwapPsbt({
+  //     ownerPubkey: user.pubkey,
+  //     buyerPaymentPubkey: buyerPubkey,
+  //     buyerTaprootPubkey: user.pubkey,
+  //     walletType,
+  //     recipient,
+  //     network: this.network,
+  //     sellerInscriptionId,
+  //     buyerInscriptionIds,
+  //     price: price * 10 ** 8,
+  //     ownerWalletType: txData.walletType,
+  //     buyerWalletType: user.walletType,
+  //     ownerPaymentAddress: txData.paymentAddress,
+  //   });
+
+  //   const inscriptions = await this.inscriptionService.findInscriptionByIds(
+  //     buyerInscriptionIds,
+  //   );
+
+  //   const expiredAt = new Date();
+  //   const time = expiredIn.match(/\d+/)[0];
+
+  //   if (expiredIn.endsWith('m')) {
+  //     const minutes = expiredAt.getMinutes();
+  //     expiredAt.setMinutes(minutes + Number(time));
+  //   } else if (expiredIn.endsWith('h')) {
+  //     const hours = expiredAt.getHours();
+  //     expiredAt.setHours(hours + Number(time));
+  //   } else if (expiredIn.endsWith('d')) {
+  //     const date = expiredAt.getDate();
+  //     expiredAt.setHours(date + Number(time));
+  //   }
+
+  //   const swapOffer = this.swapOfferRepository.create({
+  //     buyNowActivityId: [txData.buyNowActivityId],
+  //     price: price,
+  //     status: OfferStatus.CREATED,
+  //     psbt,
+  //     user,
+  //     expiredAt,
+  //   });
+
+  //   const savedSwapOffer = await this.swapOfferRepository.save(swapOffer);
+
+  //   await Promise.all(
+  //     inscriptions.map((inscription) =>
+  //       this.swapInscriptionRepository.save({
+  //         inscriptionId: inscription.id,
+  //         swap_offer_id: savedSwapOffer.id,
+  //       }),
+  //     ),
+  //   );
+
+  //   if (walletType === WalletTypes.XVERSE) {
+  //     const base64Psbt = this.psbtService.convertHexedToBase64(psbt);
+  //     return { psbt: base64Psbt, inputCount };
+  //   }
+
+  //   return { psbt, inputCount };
+  // }
+
   // async cancelSwapOffer(uuid: string, address: string): Promise<boolean> {
   //   const user = await this.userService.findByAddress(address);
 

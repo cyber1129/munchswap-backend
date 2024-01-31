@@ -45,48 +45,4 @@ export class AuthController {
   ): Promise<GenerateMessage> {
     return this.authService.generateSignMessage(body.address);
   }
-
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ description: `Get user profile`, tags: ['Auth'] })
-  @ApiResponse(ApiResponseHelper.success(User, HttpStatus.OK))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/profile')
-  async profile(@Request() req): Promise<Partial<User>> {
-    const user = await this.authService.getUser(req.user.uuid);
-    if (!user) throw new BadRequestException('Can not find the User');
-    return {
-      name: user.name,
-      email: user.email,
-      bio: user.bio,
-      website: user.website,
-      twitter: user.twitter,
-      facebook: user.facebook,
-      isRegistered: user.isRegistered,
-      address: user.address,
-      walletType: user.walletType,
-      paymentAddress: user.paymentAddress,
-      pubkey: user.pubkey,
-    };
-  }
-
-  @ApiOperation({ description: `Update user profile`, tags: ['Auth'] })
-  @ApiResponse(ApiResponseHelper.success(User, HttpStatus.OK))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/profile/:userName')
-  async success(@Param('userName') userName: string): Promise<Partial<User>> {
-    const user = await this.authService.getUserByName(userName);
-    return {
-      name: user.name,
-      bio: user.bio,
-      website: user.website,
-      twitter: user.twitter,
-      facebook: user.facebook,
-      isRegistered: user.isRegistered,
-      address: user.address,
-      walletType: user.walletType,
-      paymentAddress: user.paymentAddress,
-      pubkey: user.pubkey,
-    };
-  }
 }

@@ -6,22 +6,15 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
+import { Inscription } from '@src/inscription/inscription.entity';
+import { SwapOffer } from './swap-offer.entity';
 
-import { User } from '@src/user/user.entity';
-
-export enum FriendStatus {
-  PENDING = 'pending',
-  ACCEPTED = 'accepted',
-  BLOCKED = 'blocked',
-  IGNORE = 'ignore',
-  UNBLOCK = 'unblock',
-}
-
-@Entity('friend')
-export class Friend {
+@Entity('buyer_swap_inscription')
+export class BuyerSwapInscription {
   @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
@@ -31,20 +24,10 @@ export class Friend {
   uuid: string;
 
   @Column({ type: 'integer', nullable: false })
-  senderId: number;
+  inscriptionId: number;
 
   @Column({ type: 'integer', nullable: false })
-  receiverId: number;
-
-  @ManyToOne(() => User, (user) => user.sender)
-  sender: User;
-
-  @ManyToOne(() => User, (user) => user.receiver)
-  receiver: User;
-
-  @ApiProperty({ description: 'Status', maximum: 255, required: true })
-  @Column({ type: 'enum', enum: FriendStatus, nullable: false })
-  status: FriendStatus;
+  swapOfferId: number;
 
   @ApiProperty({
     description: 'Date when the user was created',
@@ -63,4 +46,13 @@ export class Friend {
   @Exclude({ toPlainOnly: true })
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @ManyToOne(
+    () => Inscription,
+    (inscription) => inscription.buyerSwapInscription,
+  )
+  inscription: Inscription;
+
+  @ManyToOne(() => SwapOffer, (swapOffer) => swapOffer.buyerSwapInscription)
+  swapOffer: SwapOffer;
 }

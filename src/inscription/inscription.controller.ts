@@ -71,20 +71,4 @@ export class InscriptionController {
       pageOptionsDto,
     );
   }
-
-  @ApiOperation({ description: `Get owned inscription infos by user name`, tags: ['Inscription'], })
-  @ApiResponse(
-    ApiResponseHelper.success(PageDto<InscriptionInfo>, HttpStatus.OK),
-  )
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/inscriptions/:userName')
-  async getInscriptionsByUserName(
-    @Param('userName') userName: string,
-    @Query() pageOptionsDto: PageOptionsDto,
-  ) {
-    return this.inscriptionService.getOwnedInscriptionsByUserName(
-      userName,
-      pageOptionsDto,
-    );
-  }
 }

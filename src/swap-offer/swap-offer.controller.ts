@@ -10,11 +10,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-import { Role } from '@src/auth/role/role.decorator';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
-import { RoleGuard } from '@src/auth/role/role.guard';
-import { BuyerSignPsbtDto } from '@src/buy-now-offer/dto/buyer-sign-psbt.dto';
-import { OwnerSignPsbtDto } from '@src/buy-now-offer/dto/owner-sign-psbt.dto';
+import { BuyerSignPsbtDto } from './dto/buyer-sign-psbt.dto';
+import { OwnerSignPsbtDto } from './dto/owner-sign-psbt.dto';
 import {
   PageDto,
   PageOptionsDto,
@@ -23,11 +21,7 @@ import { GenerateSwapPsbtDto } from './dto/generate-swap-psbt.dto';
 import { CancelSwapOfferDto } from './dto/cancel-swap-offer.dto';
 import { SwapOfferService } from './swap-offer.service';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
-import {
-  GeneratePbst,
-  PushTxResult,
-  SignPsbtResult,
-} from '@src/buy-now-offer/buy-now-offer.type';
+import { GeneratePbst, PushTxResult, SignPsbtResult } from './swap-offer.type';
 import { SwapOffer } from './swap-offer.entity';
 
 @Controller('swap-offer')

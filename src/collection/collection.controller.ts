@@ -42,17 +42,6 @@ export class CollectionController {
   }
 
   @ApiOperation({
-    description: `Get collection datas for discover page`,
-    tags: ['Collection'],
-  })
-  @ApiResponse(ApiResponseHelper.success([DiscoverCollection], HttpStatus.OK))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/discover')
-  async getDiscoverDatas() {
-    return this.collectionService.getDiscoverCollectionDatas();
-  }
-
-  @ApiOperation({
     description: `Get inscriptions by collection name`,
     tags: ['Collection'],
   })
@@ -67,27 +56,5 @@ export class CollectionController {
       collectionName,
       pageOptionsDto,
     );
-  }
-
-  @ApiOperation({
-    description: `Collection detailed info `,
-    tags: ['Collection'],
-  })
-  @ApiResponse(ApiResponseHelper.success(CollectionDetailedInfo, HttpStatus.OK))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/info/:collectionName')
-  async getCollectionDetails(@Param('collectionName') collectionName: string) {
-    return this.collectionService.getCollectionDetails(collectionName);
-  }
-
-  @ApiOperation({
-    description: `Get popular collections`,
-    tags: ['Collection'],
-  })
-  @ApiResponse(ApiResponseHelper.success([PopularCollection], HttpStatus.OK))
-  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/popular')
-  async getPopularCollection(@Query() body: GetPopularCollectionDto) {
-    return this.collectionService.getPopularCollections(body.time);
   }
 }

@@ -6,8 +6,6 @@ import { Brackets, Connection, Like } from 'typeorm';
 
 import { LoginUserDto } from '@src/auth/dto/login-user.dto';
 import { PageDto, PageMetaDto } from '@src/common/pagination/pagination.types';
-import { BuyNowActivity } from '@src/buy-now-activity/buy-now-activity.entity';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { GetTopSellersPageDto } from './dto/get-top-sellers-page.dto';
@@ -32,23 +30,6 @@ export class UserService {
 
   async findByUuid(uuid: string): Promise<User> {
     return this.userRepository.findOne({ where: { uuid } });
-  }
-
-  async findByEmail(email: string): Promise<User> {
-    return this.userRepository.findOne({ where: { email } });
-  }
-
-  async findByName(userName: string): Promise<User> {
-    return this.userRepository.findOne({ where: { name: userName } });
-  }
-
-  async update(uuid: string, body: UpdateUserDto): Promise<User> {
-    await this.userRepository.update(
-      { uuid },
-      this.userRepository.create({ ...body, isRegistered: true }),
-    );
-
-    return this.findByUuid(uuid);
   }
 
   async create(body: LoginUserDto): Promise<User> {
@@ -98,10 +79,9 @@ export class UserService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async fetchBtcPrice(): Promise<void> {
-
     try {
       const response = await axios.get(
-        'https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT'
+        'https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT',
       );
 
       this.btcPrice = Number(response.data.price);
@@ -117,11 +97,11 @@ export class UserService {
 
   async getTotalSalesByUserId(userId: number[]): Promise<
     | {
-      address: string;
-      name: string;
-      swap_sales: number;
-      buy_now_sales: number;
-    }[]
+        address: string;
+        name: string;
+        swap_sales: number;
+        buy_now_sales: number;
+      }[]
     | null
   > {
     const res = await this.connection.query(`
@@ -185,71 +165,8 @@ export class UserService {
 
     return users.entities.map((user) => {
       return {
-        name: user.name,
         address: user.address,
       };
     });
-  }
-
-  async getTopSellers(
-    pageOptionsDto: GetTopSellersPageDto,
-  ): Promise<PageDto<{ totalSales: number; address: string; name: string }>> {
-    const now = new Date();
-    now.setDate(now.getDate() - pageOptionsDto.time);
-
-    const queryBuilder = this.userRepository
-      .createQueryBuilder('user')
-      .withDeleted()
-      .select([
-        'sales.total_sales as total_sales',
-        'user.address as address',
-        'user.name as name',
-      ])
-      .leftJoin(
-        (subQuery) => {
-          return subQuery
-            .from(BuyNowActivity, 'buy_now_activity')
-            .select(['SUM(buy_now_activity.price) as total_sales', 'user_id'])
-            .where("buy_now_activity.status='completed'")
-            .andWhere(`buy_now_activity.updated_at > :date`, { date: now })
-            .orderBy('SUM(buy_now_activity.price)', 'DESC')
-            .withDeleted()
-            .groupBy('buy_now_activity.user_id');
-        },
-        'sales',
-        'sales.user_id=user.id',
-      )
-      .where('user.is_registered=true')
-      .offset(
-        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
-      )
-      .limit(pageOptionsDto.take);
-
-    if (pageOptionsDto.keyword) {
-      queryBuilder.andWhere(
-        new Brackets((subQuery) => {
-          subQuery
-            .where('user.address like :search', {
-              search: `%${pageOptionsDto.keyword}%`,
-            })
-            .orWhere('user.name like :search', {
-              search: `%${pageOptionsDto.keyword}%`,
-            });
-        }),
-      );
-    }
-
-    const users = await queryBuilder.getRawMany();
-    const itemCount = await queryBuilder.getCount();
-
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
-    const entities = users.map((user) => {
-      return {
-        address: user.address,
-        totalSales: Math.floor(user.total_sales * 10 ** 8) / 10 ** 8,
-        name: user.name,
-      };
-    });
-    return new PageDto(entities, pageMetaDto);
   }
 }

@@ -6,14 +6,16 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 
-import { User } from '@src/user/user.entity';
+import { Inscription } from '@src/inscription/inscription.entity';
+import { SwapOffer } from './swap-offer.entity';
 
-@Entity('follow')
-export class Follow {
+@Entity('seller_swap_inscription')
+export class SellerSwapInscription {
   @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
@@ -23,16 +25,10 @@ export class Follow {
   uuid: string;
 
   @Column({ type: 'integer', nullable: false })
-  followerId: number;
+  inscriptionId: number;
 
   @Column({ type: 'integer', nullable: false })
-  followingId: number;
-
-  @ManyToOne(() => User, (user) => user.follower)
-  follower: User;
-
-  @ManyToOne(() => User, (user) => user.following)
-  following: User;
+  swapOfferId: number;
 
   @ApiProperty({
     description: 'Date when the user was created',
@@ -51,4 +47,13 @@ export class Follow {
   @Exclude({ toPlainOnly: true })
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @ManyToOne(
+    () => Inscription,
+    (inscription) => inscription.sellerSwapInscription,
+  )
+  inscription: Inscription;
+
+  @ManyToOne(() => SwapOffer, (swapOffer) => swapOffer.sellerSwapInscription)
+  swapOffer: SwapOffer;
 }

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 import { WalletTypes } from '@src/user/user.entity';
 

@@ -11,7 +11,6 @@ import {
 } from '@src/common/pagination/pagination.types';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '@src/user/user.service';
-import { BuyNowActivity } from '@src/buy-now-activity/buy-now-activity.entity';
 import { Inscription } from './inscription.entity';
 import { InscriptionRepository } from './inscription.repository';
 
@@ -71,7 +70,6 @@ export class InscriptionService {
 
     if (user) {
       inscriptionInfo['user'] = {
-        name: user.name,
         address: user.address,
       };
     }
@@ -92,12 +90,6 @@ export class InscriptionService {
           description: true,
           imgUrl: true,
         },
-        buyNowActivity: {
-          price: true,
-          user: {
-            address: true,
-          },
-        },
         updatedAt: false,
         deletedAt: false,
       },
@@ -106,11 +98,7 @@ export class InscriptionService {
       },
       relations: {
         collection: true,
-        buyNowActivity: {
-          user: true,
-        },
       },
-      order: { buyNowActivity: { price: 'ASC' } },
       skip:
         pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
       take: pageOptionsDto.take,
@@ -267,11 +255,6 @@ export class InscriptionService {
 
     queryBuilder
       .where(`inscription.collection_id=${collectionId}`)
-      .leftJoinAndSelect(
-        BuyNowActivity,
-        'buy_now_activity',
-        'buy_now_activity.inscription_id=inscription.id',
-      )
       .orderBy('buy_now_activity.price', 'ASC')
       .skip(
         pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
@@ -293,7 +276,7 @@ export class InscriptionService {
     try {
       if (network === testnet) {
         const url = `https://unisat.io/testnet/wallet-api-v4/inscription/utxo-detail`;
-        
+
         const headers = {
           'X-Client': 'UniSat Wallet',
         };
@@ -308,7 +291,7 @@ export class InscriptionService {
         return result.data.result.inscriptions[0].address;
       } else {
         const url = 'https://api.hiro.so/ordinals/v1/inscriptions';
-        
+
         const result = await axios.get(url, {
           params: {
             id: inscriptionId,
@@ -319,22 +302,11 @@ export class InscriptionService {
       }
     } catch (error) {
       this.logger.error(error);
-      
+
       throw new BadRequestException(
         'Ordinal api is not working now. Try again later',
       );
     }
-  }
-
-  async getOwnedInscriptionsByUserName(
-    userName: string,
-    pageOptionsDto: PageOptionsDto,
-  ) {
-    const user = await this.userService.findByName(userName);
-
-    if (!user) throw new BadRequestException('Can not find that user');
-
-    return this.getOwnedInscriptions(user.address, pageOptionsDto);
   }
 
   async search(keyWord: string): Promise<Inscription[]> {
@@ -343,13 +315,9 @@ export class InscriptionService {
         inscriptionId: Like(`%${keyWord}%`),
       },
       relations: {
-        buyNowActivity: true,
         collection: true,
       },
       select: {
-        buyNowActivity: {
-          price: true,
-        },
         collection: {
           name: true,
           imgUrl: true,

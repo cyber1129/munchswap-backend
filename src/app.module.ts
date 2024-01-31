@@ -13,18 +13,14 @@ import jwtConfig from './config/jwt.config';
 import { validate } from './common/validators/env.validator';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { BuyNowActivityModule } from './buy-now-activity/buy-now-activity.module';
-import { BuyNowOfferModule } from './buy-now-offer/buy-now-offer.module';
 import { CollectionModule } from './collection/collection.module';
 import { InscriptionService } from './inscription/inscription.service';
 import { InscriptionModule } from './inscription/inscription.module';
 import { PsbtModule } from './psbt/psbt.module';
 import { SwapOfferModule } from './swap-offer/swap-offer.module';
 import psbtConfig from './config/psbt.config';
-import { FollowModule } from './follow/follow.module';
 import { FileModule } from './file/file.module';
 import { SearchModule } from './search/search.module';
-import { FriendModule } from './friend/friend.module';
 import fileConfig from './config/file.config';
 
 EnvHelper.verifyNodeEnv();
@@ -52,16 +48,12 @@ EnvHelper.verifyNodeEnv();
     }),
     UserModule,
     AuthModule,
-    BuyNowActivityModule,
-    BuyNowOfferModule,
     CollectionModule,
     InscriptionModule,
     PsbtModule,
     SwapOfferModule,
-    FollowModule,
     FileModule,
     SearchModule,
-    FriendModule,
   ],
   controllers: [AppController],
   providers: [InscriptionService],

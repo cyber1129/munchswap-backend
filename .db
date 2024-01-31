@@ -12,13 +12,6 @@ enum Role {
   admin
 }
 
-enum FriendStatus {
-  pending
-  friend
-  blocked
-  ignore
-}
-
 enum OfferStatus {
   created // created the psbt
   signed //buy signed the psbt
@@ -26,6 +19,7 @@ enum OfferStatus {
   pushed // combine and pushed
   failed // failed when push transaction
   canceled // canceled by owner
+  pending // waiting for push tx
 }
 
 enum ActivityStatus {
@@ -37,41 +31,11 @@ enum ActivityStatus {
 Table user {
   id integer [pk]
   uuid varchar
-  email varchar
-  name varchar
-  bio timestamp
-  website varchar
-  twitter varchar
-  facebook varchar
   address varchar
   paymentAddress varchar
   pubkey varchar
   walletType WalletTypes
-  isRegistered boolean
   role Role
-}
-
-Table buy_now_activity {
-  id integer [pk]
-  uuid varchar
-  user_id integer [ref: > user.id]
-  price double
-  inscription_id integer [ref:> inscription.id]
-  status ActivityStatus
-  expiredAt datetime
-}
-
-Table buy_now_offer {
-  id integer [pk]
-  uuid varchar
-  buy_now_activity_id integer [ref: > buy_now_activity.id]
-  user_id int [ref: > user.id]
-  price double
-  status OfferStatus
-  psbt varchar
-  user_signed_psbt varchar
-  buyser_signed_psbt varchar
-  is_read boolean
 }
 
 Table collection {
@@ -95,22 +59,28 @@ Table inscription {
 Table swap_offer {
   id integer [pk]
   uuid varchar
-  buy_now_activity_id integer [ref: > buy_now_activity.id]
-  user_id int [ref: > user.id]
+  buyer_id int [ref: > user.id]
+  seller_id int [ref: > user.id]
   price double
   status OfferStatus
   psbt varchar
-  user_signed_psbt varchar
-  buyser_signed_psbt varchar
-  is_read boolean
+  buyer_signed_psbt varchar
+  seller_signed_psbt varchar
   expiredAt datetime
 }
 
-Table follow {
+Table buyer_swap_inscription {
   id integer [pk]
   uuid varchar
-  follower_id integer [ref: > user.id]
-  following_id integer [ref: > user.id]
+  inscription_id int [ref:> inscription.id]
+  swap_offer_id int [ref:> swap_offer.id]
+}
+
+Table seller_swap_inscription {
+  id integer [pk]
+  uuid varchar
+  inscription_id int [ref:> inscription.id]
+  swap_offer_id int [ref:> swap_offer.id]
 }
 
 Table sign_message {
@@ -118,19 +88,4 @@ Table sign_message {
   uuid varchar
   address varchar
   mesage varchar
-}
-
-Table swap_inscriptions {
-  id integer [pk]
-  uuid varchar
-  swap_offer_id integer [ref: > swap_offer.id]
-  inscriptionId integer [ref: > inscription.id]
-}
-
-Table friend {
-  id integer [pk]
-  uuid varchar
-  sender_id integer [ref:> user.id]
-  receiver_id integer [ref:> user.id]
-  status FriendStatus
 }

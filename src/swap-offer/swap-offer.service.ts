@@ -6,20 +6,17 @@ import { testnet, bitcoin, Network } from 'bitcoinjs-lib/src/networks';
 
 import { WalletTypes } from '@src/user/user.entity';
 import { InscriptionService } from '@src/inscription/inscription.service';
-import { BuyNowActivityService } from '@src/buy-now-activity/buy-now-activity.service';
 import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
-import { OfferStatus } from '@src/buy-now-offer/buy-now-offer.entity';
-import { BuyerSignPsbtDto } from '@src/buy-now-offer/dto/buyer-sign-psbt.dto';
-import { OwnerSignPsbtDto } from '@src/buy-now-offer/dto/owner-sign-psbt.dto';
+import { BuyerSignPsbtDto } from './dto/buyer-sign-psbt.dto';
+import { OwnerSignPsbtDto } from './dto/owner-sign-psbt.dto';
 import {
   PageDto,
   PageMetaDto,
   PageOptionsDto,
 } from '@src/common/pagination/pagination.types';
-import { BuyNowActivity } from '@src/buy-now-activity/buy-now-activity.entity';
-import { SwapInscriptionRepository } from './swap-inscription.repository';
 import { SwapOfferRepository } from './swap-offer.repository';
+import { OfferStatus } from './swap-offer.entity';
 
 @Injectable()
 export class SwapOfferService {
@@ -27,9 +24,6 @@ export class SwapOfferService {
 
   constructor(
     private swapOfferRepository: SwapOfferRepository,
-    private swapInscriptionRepository: SwapInscriptionRepository,
-    private inscriptionService: InscriptionService,
-    private buyNowActivityService: BuyNowActivityService,
     private psbtService: PsbtService,
     private userService: UserService,
     private configService: ConfigService,
@@ -40,98 +34,6 @@ export class SwapOfferService {
     else this.network = testnet;
   }
 
-  async generatePsbt({
-    buyerInscriptionIds,
-    sellerInscriptionId,
-    recipient,
-    buyerPubkey,
-    walletType,
-    price = 0,
-    expiredIn,
-  }: {
-    buyerInscriptionIds: string[];
-    sellerInscriptionId: string;
-    recipient: string;
-    buyerPubkey: string;
-    walletType: WalletTypes;
-    price?: number;
-    expiredIn: string;
-  }) {
-    const isOwner = await this.inscriptionService.checkInscriptionOwner(
-      recipient,
-      sellerInscriptionId,
-    );
-
-    if (isOwner)
-      throw new BadRequestException('You are owner of the inscription');
-
-    const txData = await this.buyNowActivityService.getBuyNowPsbtDatas({
-      inscriptionId: sellerInscriptionId,
-    });
-
-    const user = await this.userService.findByAddress(recipient);
-
-    const { psbt, inputCount } = await this.psbtService.generateSwapPsbt({
-      ownerPubkey: txData.pubkey,
-      buyerPaymentPubkey: buyerPubkey,
-      buyerTaprootPubkey: user.pubkey,
-      walletType,
-      recipient,
-      network: this.network,
-      sellerInscriptionId,
-      buyerInscriptionIds,
-      price: price * 10 ** 8,
-      ownerWalletType: txData.walletType,
-      buyerWalletType: user.walletType,
-      ownerPaymentAddress: txData.paymentAddress,
-    });
-
-    const inscriptions = await this.inscriptionService.findInscriptionByIds(
-      buyerInscriptionIds,
-    );
-
-    const expiredAt = new Date();
-    const time = expiredIn.match(/\d+/)[0];
-
-    if (expiredIn.endsWith('m')) {
-      const minutes = expiredAt.getMinutes();
-      expiredAt.setMinutes(minutes + Number(time));
-    } else if (expiredIn.endsWith('h')) {
-      const hours = expiredAt.getHours();
-      expiredAt.setHours(hours + Number(time));
-    } else if (expiredIn.endsWith('d')) {
-      const date = expiredAt.getDate();
-      expiredAt.setHours(date + Number(time));
-    }
-
-    const swapOffer = this.swapOfferRepository.create({
-      buyNowActivityId: txData.buyNowActivityId,
-      price: price,
-      status: OfferStatus.CREATED,
-      psbt,
-      user,
-      expiredAt,
-    });
-
-    const savedSwapOffer = await this.swapOfferRepository.save(swapOffer);
-
-    await Promise.all(
-      inscriptions.map((inscription) =>
-        this.swapInscriptionRepository.save({
-          inscriptionId: inscription.id,
-          swap_offer_id: savedSwapOffer.id,
-        }),
-      ),
-    );
-
-    if (walletType === WalletTypes.XVERSE) {
-      const base64Psbt = this.psbtService.convertHexedToBase64(psbt);
-      return { psbt: base64Psbt, inputCount };
-    }
-
-    return { psbt, inputCount };
-  }
-
   async cancelSwapOffer(uuid: string, address: string): Promise<boolean> {
     const user = await this.userService.findByAddress(address);
 
@@ -139,16 +41,12 @@ export class SwapOfferService {
       where: {
         uuid,
       },
-      relations: { buyNowActivity: true },
     });
 
     if (!swapOffer)
       throw new BadRequestException('Can not find the buy now offer');
 
-    if (
-      swapOffer.buyNowActivity.userId !== user.id &&
-      swapOffer.userId !== user.id
-    )
+    if (swapOffer.userId !== user.id)
       throw new BadRequestException('You can not cancel the offer');
 
     await this.swapOfferRepository.update(
@@ -164,48 +62,17 @@ export class SwapOfferService {
   async buyerSignPsbt(body: BuyerSignPsbtDto, userAddress: string) {
     const user = await this.userService.findByAddress(userAddress);
 
-    let psbt = body.psbt;
-    if (body.walletType === WalletTypes.XVERSE)
-      psbt = this.psbtService.convertBase64ToHexed(body.psbt);
-
     const swapOffer = await this.swapOfferRepository.findOne({
-      where: { psbt, userId: user.id },
+      where: { psbt: body.psbt, userId: user.id },
     });
 
     if (!swapOffer)
       throw new BadRequestException('Can not find that swap offer');
 
-    let signedPsbt = body.signedPsbt;
-    if (body.signedPsbt1) {
-      signedPsbt = await this.psbtService.combinePsbt(
-        body.psbt,
-        body.signedPsbt,
-        body.signedPsbt1,
-      );
-    }
-
-    const inputCount = this.psbtService.getInputCount(psbt);
-    const inputsToFinalize: number[] = [];
-
-    for (let i = 1; i < inputCount; i++) {
-      inputsToFinalize.push(i);
-    }
-
-    if (body.walletType === WalletTypes.HIRO) {
-      signedPsbt = this.psbtService.finalizePsbtInput(
-        signedPsbt,
-        inputsToFinalize,
-      );
-    } else if (body.walletType === WalletTypes.XVERSE) {
-      const signedHexedPsbt = this.psbtService.convertBase64ToHexed(signedPsbt);
-      signedPsbt = this.psbtService.finalizePsbtInput(
-        signedHexedPsbt,
-        inputsToFinalize,
-      );
-    }
+    const signedPsbt = body.signedPsbt;
 
     await this.swapOfferRepository.update(
-      { psbt },
+      { psbt: body.psbt },
       {
         buyerSignedPsbt: signedPsbt,
         status: OfferStatus.SIGNED,
@@ -384,7 +251,7 @@ export class SwapOfferService {
         status: OfferStatus.EXPIRED,
       },
     );
-    
+
     await this.swapOfferRepository.softDelete({
       expiredAt: LessThan(new Date()),
       status: Not(OfferStatus.PUSHED),

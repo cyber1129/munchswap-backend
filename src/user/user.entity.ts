@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { SwapOffer } from '@src/swap-offer/swap-offer.entity';
 import { Exclude } from 'class-transformer';
 import {
   CreateDateColumn,
@@ -9,11 +10,6 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-
-import { BuyNowActivity } from '@src/buy-now-activity/buy-now-activity.entity';
-import { BuyNowOffer } from '@src/buy-now-offer/buy-now-offer.entity';
-import { Follow } from '@src/follow/follow.entity';
-import { Friend } from '@src/friend/friend.entity';
 
 export enum WalletTypes {
   UNISAT = 'Unisat',
@@ -35,30 +31,6 @@ export class User {
   @ApiProperty({ description: `Unique uuid`, maximum: 36 })
   @Column({ type: 'varchar', nullable: false, length: 36 })
   uuid: string;
-
-  @ApiProperty({ description: 'Display name', maximum: 128, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 128 })
-  name: string;
-
-  @ApiProperty({ description: 'E-mail', maximum: 255, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 255 })
-  email: string;
-
-  @ApiProperty({ description: 'Bio', maximum: 255, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 255 })
-  bio: string;
-
-  @ApiProperty({ description: 'WebSite', maximum: 255, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 255 })
-  website: string;
-
-  @ApiProperty({ description: 'Twitter', maximum: 255, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 255 })
-  twitter: string;
-
-  @ApiProperty({ description: 'Facebook', maximum: 255, required: false })
-  @Column({ type: 'varchar', nullable: true, length: 255 })
-  facebook: string;
 
   @ApiProperty({ description: 'Public key', maximum: 255, required: true })
   @Column({
@@ -84,10 +56,6 @@ export class User {
   @Column({ type: 'enum', enum: Role, nullable: false, default: Role.CUSTOMER })
   role: Role;
 
-  @ApiProperty({ description: 'Is Registered', maximum: 255, required: true })
-  @Column({ type: 'boolean', nullable: false, default: false })
-  isRegistered: boolean;
-
   @ApiProperty({
     description: 'Date when the user was created',
     required: true,
@@ -106,21 +74,9 @@ export class User {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  @OneToMany(() => BuyNowActivity, (buyNowActivity) => buyNowActivity.user)
-  buyNowActivity: BuyNowActivity[];
+  @OneToMany(() => SwapOffer, (swapOffer) => swapOffer.buyer)
+  buyerswapOffer: SwapOffer;
 
-  @OneToMany(() => BuyNowOffer, (buyNowOffer) => buyNowOffer.user)
-  buyNowOffer: BuyNowOffer[];
-
-  @OneToMany(() => Follow, (follow) => follow.follower)
-  follower: Follow[];
-
-  @OneToMany(() => Follow, (follow) => follow.following)
-  following: Follow[];
-
-  @OneToMany(() => Friend, (friend) => friend.sender)
-  sender: Friend[];
-
-  @OneToMany(() => Friend, (friend) => friend.receiver)
-  receiver: Friend[];
+  @OneToMany(() => SwapOffer, (swapOffer) => swapOffer.seller)
+  sellerswapOffer: SwapOffer;
 }

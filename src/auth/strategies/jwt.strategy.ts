@@ -19,7 +19,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       uuid: payload.uuid,
       address: payload.address,
       role: payload.role,
-      isRegistered: payload.isRegistered,
     };
   }
 }

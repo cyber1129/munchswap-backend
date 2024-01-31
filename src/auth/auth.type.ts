@@ -6,7 +6,6 @@ export interface AccessTokenInterface {
   uuid: string;
   address: string;
   role: Role;
-  isRegistered: boolean;
 }
 
 export class AccessToken {

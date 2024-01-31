@@ -4,8 +4,6 @@ import {
   Injectable,
   forwardRef,
 } from '@nestjs/common';
-import axios from 'axios';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { generateSlug } from 'random-word-slugs';
 import { Verifier } from 'bip322-js';
@@ -62,7 +60,6 @@ export class AuthService {
         address: user.address,
         uuid: user.uuid,
         role: user.role,
-        isRegistered: user.isRegistered,
       };
     const savedUser = await this.userService.create(body);
 
@@ -70,7 +67,6 @@ export class AuthService {
       address: savedUser.address,
       uuid: savedUser.uuid,
       role: savedUser.role,
-      isRegistered: savedUser.isRegistered,
     };
   }
 
@@ -79,7 +75,6 @@ export class AuthService {
       address: user.address,
       uuid: user.uuid,
       role: user.role,
-      isRegistered: user.isRegistered,
     };
 
     return this.jwtService.signAsync(payload);
@@ -87,13 +82,6 @@ export class AuthService {
 
   async getUser(uuid: string): Promise<User> {
     return this.userService.findByUuid(uuid);
-  }
-
-  async getUserByName(userName: string): Promise<User> {
-    const user = await this.userService.findByName(userName);
-    if (!user) throw new BadRequestException('Can not find user info');
-
-    return user;
   }
 
   async generateSignMessage(address: string): Promise<{ message: string }> {

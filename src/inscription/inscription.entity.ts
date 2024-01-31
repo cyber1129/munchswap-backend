@@ -11,9 +11,9 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
-import { SwapInscription } from '@src/swap-offer/swap-inscription.entity';
 import { Collection } from '@src/collection/collection.entity';
-import { BuyNowActivity } from '@src/buy-now-activity/buy-now-activity.entity';
+import { BuyerSwapInscription } from '@src/swap-offer/buyer-swap-inscription.entity';
+import { SellerSwapInscription } from '@src/swap-offer/seller-swap-inscription.entity';
 
 @Entity('inscription')
 export class Inscription {
@@ -35,18 +35,6 @@ export class Inscription {
   @ManyToOne(() => Collection, (collection) => collection.inscription)
   collection: Collection;
 
-  @OneToMany(
-    () => BuyNowActivity,
-    (buyNowActivity) => buyNowActivity.inscription,
-  )
-  buyNowActivity: BuyNowActivity[];
-
-  @OneToMany(
-    () => SwapInscription,
-    (swapInscription) => swapInscription.inscription,
-  )
-  swapInscription: SwapInscription[];
-
   @ApiProperty({
     description: 'Date when the user was created',
     required: true,
@@ -64,4 +52,16 @@ export class Inscription {
   @Exclude({ toPlainOnly: true })
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @OneToMany(
+    () => BuyerSwapInscription,
+    (buyerSwapInscription) => buyerSwapInscription.inscription,
+  )
+  buyerSwapInscription: BuyerSwapInscription[];
+
+  @OneToMany(
+    () => SellerSwapInscription,
+    (sellerSwapInscription) => sellerSwapInscription.inscription,
+  )
+  sellerSwapInscription: SellerSwapInscription[];
 }

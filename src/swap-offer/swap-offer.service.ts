@@ -109,7 +109,7 @@ export class SwapOfferService {
     );
     await Promise.all(
       sellerInscriptions.map((inscription) =>
-        this.saveBuyerSwapInscription(inscription, savedSwapOffer),
+        this.saveSellerSwapInscription(inscription, savedSwapOffer),
       ),
     );
 
@@ -180,7 +180,7 @@ export class SwapOfferService {
     const user = await this.userService.findByAddress(userAddress);
 
     const swapOffer = await this.swapOfferRepository.findOne({
-      where: { psbt: body.psbt, buyer: user },
+      where: { psbt: body.psbt, buyer: { id: user.id } },
     });
 
     if (!swapOffer)
@@ -258,92 +258,105 @@ export class SwapOfferService {
     }
   }
 
-  // async getActiveOffers(ownerAddress: string, pageOptionsDto: PageOptionsDto) {
-  //   const user = await this.userService.findByAddress(ownerAddress);
+  async getActiveOffers(ownerAddress: string, pageOptionsDto: PageOptionsDto) {
+    const user = await this.userService.findByAddress(ownerAddress);
 
-  //   const swapOffers = await this.swapOfferRepository.find({
-  //     select: {
-  //       user: {
-  //         name: true,
-  //         address: true,
-  //       },
-  //     },
-  //     where: {
-  //       buyNowActivity: {
-  //         userId: user.id,
-  //       },
-  //       status: OfferStatus.SIGNED,
-  //     },
-  //     relations: {
-  //       buyNowActivity: { inscription: true, user: true },
-  //       user: true,
-  //       swapInscription: { inscription: true },
-  //     },
-  //     skip:
-  //       pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
-  //     take: pageOptionsDto.take,
-  //     order: {
-  //       id: pageOptionsDto.order,
-  //     },
-  //   });
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        buyer: {
+          address: true,
+        },
+      },
+      where: {
+        buyer: { id: user.id },
+        status: OfferStatus.SIGNED,
+      },
+      relations: {
+        buyerSwapInscription: { inscription: { collection: true } },
+        sellerSwapInscription: { inscription: { collection: true } },
+        buyer: true,
+        seller: true,
+      },
+      skip:
+        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
+      take: pageOptionsDto.take,
+      order: {
+        id: pageOptionsDto.order,
+      },
+    });
 
-  //   const entities = swapOffers.map((swapOffer) => {
-  //     return {
-  //       price: swapOffer.price,
-  //       psbt: swapOffer.psbt,
-  //       user: swapOffer.user,
-  //       isRead: swapOffer.isRead,
-  //       uuid: swapOffer.uuid,
-  //       expiredAt: swapOffer.expiredAt,
-  //       buyNowActivity: {
-  //         inscription: {
-  //           inscriptionId: swapOffer.buyNowActivity.inscription.inscriptionId,
-  //         },
-  //       },
-  //       inscription: {
-  //         inscriptionIds: swapOffer.swapInscription.map(
-  //           (inscription) => inscription.inscription.inscriptionId,
-  //         ),
-  //       },
-  //     };
-  //   });
+    const entities = swapOffers.map((swapOffer) => {
+      return {
+        price: swapOffer.price,
+        psbt: swapOffer.psbt,
+        buyer: swapOffer.buyer.address,
+        seller: swapOffer.seller.address,
+        uuid: swapOffer.uuid,
+        expiredAt: swapOffer.expiredAt,
+        buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
+          return {
+            inscriptionId: inscription.inscription.inscriptionId,
+            collection: {
+              imgUrl: inscription.inscription.collection.imgUrl,
+              description: inscription.inscription.collection.description,
+              name: inscription.inscription.collection.name,
+              discord: inscription.inscription.collection.discord,
+              website: inscription.inscription.collection.website,
+              twitter: inscription.inscription.collection.twitter,
+            },
+          };
+        }),
+        sellerInscription: swapOffer.sellerSwapInscription.map(
+          (inscription) => {
+            return {
+              inscriptionId: inscription.inscription.inscriptionId,
+              collection: {
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                name: inscription.inscription.collection.name,
+                discord: inscription.inscription.collection.discord,
+                website: inscription.inscription.collection.website,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            };
+          },
+        ),
+      };
+    });
 
-  //   if (user.walletType === WalletTypes.XVERSE)
-  //     entities.forEach((offer) => {
-  //       offer.psbt = this.psbtService.convertHexedToBase64(offer.psbt);
-  //     });
+    if (user.walletType === WalletTypes.XVERSE)
+      entities.forEach((offer) => {
+        offer.psbt = this.psbtService.convertHexedToBase64(offer.psbt);
+      });
 
-  //   const itemCount = await this.swapOfferRepository
-  //     .createQueryBuilder('swap_offer')
-  //     .addFrom(BuyNowActivity, 'buy_now_activity')
-  //     .where(`buy_now_activity.user_id=${user.id}`)
-  //     .andWhere(`swap_offer.status='${OfferStatus.SIGNED}'`)
-  //     .andWhere('swap_offer.buy_now_activity_id=buy_now_activity.id')
-  //     .andWhere('buy_now_activity.deleted_at IS NULL')
-  //     .getCount();
+    const itemCount = await this.swapOfferRepository
+      .createQueryBuilder('swap_offer')
+      .where(`buyer_id=${user.id}`)
+      .andWhere(`swap_offer.status='${OfferStatus.SIGNED}'`)
+      .getCount();
 
-  //   const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
-  //   return new PageDto(entities, pageMetaDto);
-  // }
+    return new PageDto(entities, pageMetaDto);
+  }
 
-  // @Cron(CronExpression.EVERY_MINUTE)
-  // async deleteExpiredOffers() {
-  //   await this.swapOfferRepository.update(
-  //     {
-  //       expiredAt: LessThan(new Date()),
-  //       status: Not(OfferStatus.PUSHED),
-  //     },
-  //     {
-  //       status: OfferStatus.EXPIRED,
-  //     },
-  //   );
+  @Cron(CronExpression.EVERY_MINUTE)
+  async deleteExpiredOffers() {
+    await this.swapOfferRepository.update(
+      {
+        expiredAt: LessThan(new Date()),
+        status: Not(OfferStatus.PUSHED),
+      },
+      {
+        status: OfferStatus.EXPIRED,
+      },
+    );
 
-  //   await this.swapOfferRepository.softDelete({
-  //     expiredAt: LessThan(new Date()),
-  //     status: Not(OfferStatus.PUSHED),
-  //   });
-  // }
+    await this.swapOfferRepository.softDelete({
+      expiredAt: LessThan(new Date()),
+      status: Not(OfferStatus.PUSHED),
+    });
+  }
 
   // async getPendingOffers(userAddress: string, pageOptionsDto: PageOptionsDto) {
   //   const user = await this.userService.findByAddress(userAddress);

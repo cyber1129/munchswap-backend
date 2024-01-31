@@ -109,21 +109,21 @@ export class SwapOfferController {
     };
   }
 
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  // @ApiOperation({ description: `Get active offers`, tags: ['Swap offer'] })
-  // @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
-  // @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  // @Get('/active-offers')
-  // async getActiveOffers(
-  //   @Request() req,
-  //   @Query() pageOptionsDto: PageOptionsDto,
-  // ) {
-  //   return this.swapOfferService.getActiveOffers(
-  //     req.user.address,
-  //     pageOptionsDto,
-  //   );
-  // }
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description: `Get active offers`, tags: ['Swap offer'] })
+  @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Get('/active-offers')
+  async getActiveOffers(
+    @Request() req,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ) {
+    return this.swapOfferService.getActiveOffers(
+      req.user.address,
+      pageOptionsDto,
+    );
+  }
 
   // @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)

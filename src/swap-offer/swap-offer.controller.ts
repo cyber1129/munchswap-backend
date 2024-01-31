@@ -28,33 +28,31 @@ import { SwapOffer } from './swap-offer.entity';
 export class SwapOfferController {
   constructor(private swapOfferService: SwapOfferService) {}
 
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  // @ApiOperation({
-  //   description: `Generate swap psbt`,
-  //   tags: ['Swap offer'],
-  // })
-  // @ApiResponse(ApiResponseHelper.success(GeneratePbst, HttpStatus.CREATED))
-  // @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  // @Post('/generate-psbt')
-  // async generatePsbt(
-  //   @Request() req,
-  //   @Body() body: GenerateSwapPsbtDto,
-  // ): Promise<{ psbt: string }> {
-  //   const { psbt } = await this.swapOfferService.generatePsbt({
-  //     buyerPubkey: body.buyerPubkey,
-  //     buyerInscriptionIds: body.buyerInscriptionIds,
-  //     sellerInscriptionIds: body.sellerInscriptionIds,
-  //     recipient: req.user.address,
-  //     walletType: body.walletType,
-  //     price: body.price,
-  //     expiredIn: body.expiredIn,
-  //   });
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: `Generate swap psbt`,
+    tags: ['Swap offer'],
+  })
+  @ApiResponse(ApiResponseHelper.success(GeneratePbst, HttpStatus.CREATED))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('/generate-psbt')
+  async generatePsbt(
+    @Request() req,
+    @Body() body: GenerateSwapPsbtDto,
+  ): Promise<{ psbt: string }> {
+    const { psbt } = await this.swapOfferService.generatePsbt({
+      buyerInscriptionIds: body.buyerInscriptionIds,
+      sellerInscriptionIds: body.sellerInscriptionIds,
+      walletType: body.walletType,
+      price: body.price,
+      expiredIn: body.expiredIn,
+    });
 
-  //   return {
-  //     psbt,
-  //   };
-  // }
+    return {
+      psbt,
+    };
+  }
 
   // @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)

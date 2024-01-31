@@ -16,7 +16,11 @@ import {
   PageOptionsDto,
 } from '@src/common/pagination/pagination.types';
 import { SwapOfferRepository } from './swap-offer.repository';
-import { OfferStatus } from './swap-offer.entity';
+import { OfferStatus, SwapOffer } from './swap-offer.entity';
+import { BuyerSwapInscriptionRepository } from './buyer-swap-inscription.repository';
+import { SellerSwapInscriptionRepository } from './seller-swap-inscription.repository';
+import { Inscription } from '@src/inscription/inscription.entity';
+import { BuyerSwapInscription } from './buyer-swap-inscription.entity';
 
 @Injectable()
 export class SwapOfferService {
@@ -24,6 +28,8 @@ export class SwapOfferService {
 
   constructor(
     private swapOfferRepository: SwapOfferRepository,
+    private buyerSwapInscriptionRepository: BuyerSwapInscriptionRepository,
+    private sellerSwapInscriptionRepository: SellerSwapInscriptionRepository,
     private psbtService: PsbtService,
     private userService: UserService,
     private inscriptionService: InscriptionService,
@@ -38,14 +44,12 @@ export class SwapOfferService {
   async generatePsbt({
     buyerInscriptionIds,
     sellerInscriptionIds,
-    buyererAddress,
     walletType,
     price = 0,
     expiredIn,
   }: {
     buyerInscriptionIds: string[];
     sellerInscriptionIds: string[];
-    buyererAddress: string;
     walletType: WalletTypes;
     price?: number;
     expiredIn: string;
@@ -97,16 +101,34 @@ export class SwapOfferService {
 
     const savedSwapOffer = await this.swapOfferRepository.save(swapOffer);
 
-    // await Promise.all(
-    //   inscriptions.map((inscription) =>
-    //     this.swapInscriptionRepository.save({
-    //       inscriptionId: inscription.id,
-    //       swap_offer_id: savedSwapOffer.id,
-    //     }),
-    //   ),
-    // );
+    await Promise.all(
+      buyerInscriptions.map((inscription) =>
+        this.saveBuyerSwapInscription(inscription, savedSwapOffer),
+      ),
+    );
+    await Promise.all(
+      sellerInscriptions.map((inscription) =>
+        this.saveBuyerSwapInscription(inscription, savedSwapOffer),
+      ),
+    );
 
     return { psbt };
+  }
+
+  async saveBuyerSwapInscription(
+    inscription: Inscription,
+    swapOffer: SwapOffer,
+  ): Promise<Partial<BuyerSwapInscription>> {
+    const swapInscriptionEntity: Partial<BuyerSwapInscription> = {
+      inscription,
+      swapOffer,
+    };
+    const swapInscription = await this.buyerSwapInscriptionRepository.save(
+      swapInscriptionEntity,
+      { reload: false },
+    );
+
+    return swapInscription;
   }
 
   // async cancelSwapOffer(uuid: string, address: string): Promise<boolean> {

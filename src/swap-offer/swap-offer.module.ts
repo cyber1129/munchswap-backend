@@ -9,12 +9,16 @@ import { SwapOfferService } from './swap-offer.service';
 import { SwapOfferController } from './swap-offer.controller';
 import { SwapOfferRepository } from './swap-offer.repository';
 import { BuyerSwapInscription } from './buyer-swap-inscription.entity';
+import { BuyerSwapInscriptionRepository } from './buyer-swap-inscription.repository';
+import { SellerSwapInscriptionRepository } from './seller-swap-inscription.repository';
 
 @Module({
   imports: [InscriptionModule, UserModule, PsbtModule],
   providers: [
     SwapOfferService,
     SwapOfferRepository,
+    BuyerSwapInscriptionRepository,
+    SellerSwapInscriptionRepository,
     InscriptionService,
     PsbtService,
     BuyerSwapInscription,

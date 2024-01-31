@@ -43,9 +43,6 @@ export class SwapOffer {
   @Column({ type: 'enum', enum: OfferStatus, nullable: false })
   status: OfferStatus;
 
-  @Column({ type: 'integer', nullable: false })
-  userId: number;
-
   @ApiProperty({ description: `psbt`, maximum: 5000 })
   @Column({
     type: 'varchar',

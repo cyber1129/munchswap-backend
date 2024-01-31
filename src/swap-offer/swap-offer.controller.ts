@@ -12,7 +12,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { BuyerSignPsbtDto } from './dto/buyer-sign-psbt.dto';
-import { OwnerSignPsbtDto } from './dto/owner-sign-psbt.dto';
+import { SellerSignPsbtDto } from './dto/seller-sign-psbt.dto';
 import {
   PageDto,
   PageOptionsDto,
@@ -88,26 +88,26 @@ export class SwapOfferController {
     };
   }
 
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  // @ApiOperation({ description: `Owner sign psbt`, tags: ['Swap offer'] })
-  // @ApiResponse(ApiResponseHelper.success(SignPsbtResult, HttpStatus.CREATED))
-  // @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  // @Post('/owner-sign-psbt')
-  // async ownerSignPsbt(
-  //   @Request() req,
-  //   @Body() body: OwnerSignPsbtDto,
-  // ): Promise<PushTxResult> {
-  //   const txId = await this.swapOfferService.ownerSignPsbt(
-  //     body,
-  //     req.user.address,
-  //   );
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description: `Owner sign psbt`, tags: ['Swap offer'] })
+  @ApiResponse(ApiResponseHelper.success(SignPsbtResult, HttpStatus.CREATED))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('/seller-sign-psbt')
+  async ownerSignPsbt(
+    @Request() req,
+    @Body() body: SellerSignPsbtDto,
+  ): Promise<PushTxResult> {
+    const txId = await this.swapOfferService.sellerSignPsbt(
+      body,
+      req.user.address,
+    );
 
-  //   return {
-  //     msg: 'Congratulations! Successfully accepted a swap offer',
-  //     txId,
-  //   };
-  // }
+    return {
+      msg: 'Congratulations! Successfully accepted a swap offer',
+      txId,
+    };
+  }
 
   // @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)

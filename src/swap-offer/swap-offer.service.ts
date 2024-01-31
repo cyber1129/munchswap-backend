@@ -9,7 +9,7 @@ import { InscriptionService } from '@src/inscription/inscription.service';
 import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
 import { BuyerSignPsbtDto } from './dto/buyer-sign-psbt.dto';
-import { OwnerSignPsbtDto } from './dto/owner-sign-psbt.dto';
+import { SellerSignPsbtDto } from './dto/seller-sign-psbt.dto';
 import {
   PageDto,
   PageMetaDto,
@@ -199,93 +199,64 @@ export class SwapOfferService {
     return true;
   }
 
-  // async ownerSignPsbt(
-  //   body: OwnerSignPsbtDto,
-  //   userAddress: string,
-  // ): Promise<string> {
-  //   const user = await this.userService.findByAddress(userAddress);
+  async sellerSignPsbt(
+    body: SellerSignPsbtDto,
+    userAddress: string,
+  ): Promise<string> {
+    const seller = await this.userService.findByAddress(userAddress);
 
-  //   let psbt = body.psbt;
-  //   if (body.walletType === WalletTypes.XVERSE) {
-  //     psbt = this.psbtService.convertBase64ToHexed(body.psbt);
-  //   }
+    let psbt = body.psbt;
+    if (body.walletType === WalletTypes.XVERSE) {
+      psbt = this.psbtService.convertBase64ToHexed(body.psbt);
+    }
 
-  //   const swapOffer = await this.swapOfferRepository.findOne({
-  //     where: {
-  //       psbt,
-  //       buyNowActivity: { userId: user.id },
-  //       deletedAt: null,
-  //     },
-  //     relations: {
-  //       swapInscription: true,
-  //     },
-  //   });
+    const swapOffer = await this.swapOfferRepository.findOne({
+      where: {
+        psbt,
+        seller: seller,
+      },
+    });
 
-  //   if (!swapOffer)
-  //     throw new BadRequestException('Can not find that swap now offer');
+    if (!swapOffer)
+      throw new BadRequestException('Can not find that swap now offer');
 
-  //   let signedPsbt = body.signedPsbt;
-  //   if (user.walletType === WalletTypes.HIRO) {
-  //     signedPsbt = this.psbtService.finalizePsbtInput(body.signedPsbt, [0]);
-  //   } else if (body.walletType === WalletTypes.XVERSE) {
-  //     const hexedSignedPbst = this.psbtService.convertBase64ToHexed(
-  //       body.signedPsbt,
-  //     );
-  //     signedPsbt = this.psbtService.finalizePsbtInput(hexedSignedPbst, [0]);
-  //   }
+    const signedPsbt = body.signedPsbt;
 
-  //   await this.swapOfferRepository.update(
-  //     { psbt },
-  //     {
-  //       userSignedPsbt: signedPsbt,
-  //       status: OfferStatus.ACCEPTED,
-  //       isRead: true,
-  //     },
-  //   );
+    await this.swapOfferRepository.update(
+      { psbt },
+      {
+        sellerSignedPsbt: signedPsbt,
+        status: OfferStatus.ACCEPTED,
+      },
+    );
 
-  //   try {
-  //     const txId = await this.psbtService.combinePsbtAndPush(
-  //       swapOffer.psbt,
-  //       swapOffer.buyerSignedPsbt,
-  //       signedPsbt,
-  //     );
-  //     await this.swapOfferRepository.update(
-  //       {
-  //         id: swapOffer.id,
-  //       },
-  //       { status: OfferStatus.PUSHED },
-  //     );
+    try {
+      const txId = await this.psbtService.combinePsbtAndPush(
+        swapOffer.psbt,
+        swapOffer.buyerSignedPsbt,
+        signedPsbt,
+      );
+      await this.swapOfferRepository.update(
+        {
+          id: swapOffer.id,
+        },
+        { status: OfferStatus.PUSHED },
+      );
 
-  //     await this.buyNowActivityService.deleteBuyNowActivity(
-  //       swapOffer.buyNowActivityId,
-  //     );
+      return txId;
+    } catch (error) {
+      await this.swapOfferRepository.update(
+        {
+          id: swapOffer.id,
+        },
+        { status: OfferStatus.FAILED },
+      );
 
-  //     const buyNowActivities =
-  //       await this.buyNowActivityService.getBuyNowActivityByInscriptionIds(
-  //         swapOffer.swapInscription.map(
-  //           (inscription) => inscription.inscriptionId,
-  //         ),
-  //       );
-
-  //     if (buyNowActivities && buyNowActivities.length > 0)
-  //       await this.buyNowActivityService.deleteBuyNowActivities(
-  //         buyNowActivities.map((buyNowActivity) => buyNowActivity.id),
-  //       );
-
-  //     return txId;
-  //   } catch (error) {
-  //     await this.swapOfferRepository.update(
-  //       {
-  //         id: swapOffer.id,
-  //       },
-  //       { status: OfferStatus.FAILED },
-  //     );
-
-  //     throw new BadRequestException(
-  //       'Transaction failed to push, buyer should create a psbt again',
-  //     );
-  //   }
-  // }
+      throw new BadRequestException(
+        'Transaction failed to push, buyer should create a psbt again',
+      );
+    }
+  }
 
   // async getActiveOffers(ownerAddress: string, pageOptionsDto: PageOptionsDto) {
   //   const user = await this.userService.findByAddress(ownerAddress);

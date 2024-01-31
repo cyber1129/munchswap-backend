@@ -3,7 +3,7 @@ import { IsEnum, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { WalletTypes } from '@src/user/user.entity';
 
-export class OwnerSignPsbtDto {
+export class SellerSignPsbtDto {
   @ApiProperty({
     example:
       'e19eea22dc6f6fc16c5a6aad4f6c7bdfe16733def97be0f6cb1c5d12ede37dbfi0',
@@ -23,7 +23,7 @@ export class OwnerSignPsbtDto {
     required: false,
     minimum: 1,
     maximum: 5000,
-    description: 'Buyer signed Psbt',
+    description: 'Seller signed Psbt',
   })
   @IsString()
   @MinLength(1)
@@ -35,7 +35,7 @@ export class OwnerSignPsbtDto {
     required: false,
     minimum: 1,
     maximum: 128,
-    description: 'Buyer wallet type',
+    description: 'Seller wallet type',
   })
   @IsEnum(WalletTypes)
   walletType: WalletTypes;

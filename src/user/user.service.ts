@@ -18,7 +18,6 @@ export class UserService {
     @InjectConnection() private readonly connection: Connection,
   ) {
     this.btcPrice = 0;
-    this.fetchBtcPrice();
     this.logger = new Logger(UserService.name);
   }
 
@@ -52,24 +51,6 @@ export class UserService {
 
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });
-  }
-
-  @Cron(CronExpression.EVERY_MINUTE)
-  async fetchBtcPrice(): Promise<void> {
-    try {
-      const response = await axios.get(
-        'https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT',
-      );
-
-      this.btcPrice = Number(response.data.price);
-    } catch (err) {
-      const axiosErr = err as AxiosError;
-      this.logger.error('fetch btc price error', axiosErr.response?.data);
-    }
-  }
-
-  getBtcPrice(): number {
-    return this.btcPrice;
   }
 
   async search(keyWord: string): Promise<Partial<User>[]> {

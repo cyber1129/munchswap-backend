@@ -176,28 +176,28 @@ export class SwapOfferService {
     return true;
   }
 
-  // async buyerSignPsbt(body: BuyerSignPsbtDto, userAddress: string) {
-  //   const user = await this.userService.findByAddress(userAddress);
+  async buyerSignPsbt(body: BuyerSignPsbtDto, userAddress: string) {
+    const user = await this.userService.findByAddress(userAddress);
 
-  //   const swapOffer = await this.swapOfferRepository.findOne({
-  //     where: { psbt: body.psbt, userId: user.id },
-  //   });
+    const swapOffer = await this.swapOfferRepository.findOne({
+      where: { psbt: body.psbt, buyer: user },
+    });
 
-  //   if (!swapOffer)
-  //     throw new BadRequestException('Can not find that swap offer');
+    if (!swapOffer)
+      throw new BadRequestException('Can not find that swap offer');
 
-  //   const signedPsbt = body.signedPsbt;
+    const signedPsbt = body.signedPsbt;
 
-  //   await this.swapOfferRepository.update(
-  //     { psbt: body.psbt },
-  //     {
-  //       buyerSignedPsbt: signedPsbt,
-  //       status: OfferStatus.SIGNED,
-  //     },
-  //   );
+    await this.swapOfferRepository.update(
+      { psbt: body.psbt },
+      {
+        buyerSignedPsbt: signedPsbt,
+        status: OfferStatus.SIGNED,
+      },
+    );
 
-  //   return true;
-  // }
+    return true;
+  }
 
   // async ownerSignPsbt(
   //   body: OwnerSignPsbtDto,

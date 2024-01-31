@@ -71,22 +71,22 @@ export class SwapOfferController {
     };
   }
 
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  // @ApiOperation({ description: `Buyer sign psbt`, tags: ['Swap offer'] })
-  // @ApiResponse(ApiResponseHelper.success(SignPsbtResult, HttpStatus.CREATED))
-  // @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  // @Post('/buyer-sign-psbt')
-  // async buyerSignPsbt(
-  //   @Request() req,
-  //   @Body() body: BuyerSignPsbtDto,
-  // ): Promise<{ msg: string }> {
-  //   await this.swapOfferService.buyerSignPsbt(body, req.user.address);
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description: `Buyer sign psbt`, tags: ['Swap offer'] })
+  @ApiResponse(ApiResponseHelper.success(SignPsbtResult, HttpStatus.CREATED))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('/buyer-sign-psbt')
+  async buyerSignPsbt(
+    @Request() req,
+    @Body() body: BuyerSignPsbtDto,
+  ): Promise<{ msg: string }> {
+    await this.swapOfferService.buyerSignPsbt(body, req.user.address);
 
-  //   return {
-  //     msg: 'Congratulations! Successfully created a swap offer',
-  //   };
-  // }
+    return {
+      msg: 'Congratulations! Successfully created a swap offer',
+    };
+  }
 
   // @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)

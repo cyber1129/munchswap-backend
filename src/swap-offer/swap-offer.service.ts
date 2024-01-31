@@ -26,6 +26,7 @@ export class SwapOfferService {
     private swapOfferRepository: SwapOfferRepository,
     private psbtService: PsbtService,
     private userService: UserService,
+    private inscriptionService: InscriptionService,
     private configService: ConfigService,
   ) {
     const networkType = this.configService.get('psbtConfig.network');
@@ -34,85 +35,79 @@ export class SwapOfferService {
     else this.network = testnet;
   }
 
-  // async generatePsbt({
-  //   buyerInscriptionIds,
-  //   sellerInscriptionIds,
-  //   buyer,
-  //   buyerPubkey,
-  //   walletType,
-  //   price = 0,
-  //   expiredIn,
-  // }: {
-  //   buyerInscriptionIds: string[];
-  //   sellerInscriptionIds: string[];
-  //   buyer: string;
-  //   buyerPubkey: string;
-  //   walletType: WalletTypes;
-  //   price?: number;
-  //   expiredIn: string;
-  // }) {
-  //   const user = await this.userService.findByAddress(buyer);
+  async generatePsbt({
+    buyerInscriptionIds,
+    sellerInscriptionIds,
+    buyererAddress,
+    walletType,
+    price = 0,
+    expiredIn,
+  }: {
+    buyerInscriptionIds: string[];
+    sellerInscriptionIds: string[];
+    buyererAddress: string;
+    walletType: WalletTypes;
+    price?: number;
+    expiredIn: string;
+  }) {
+    const { psbt, buyerAddress, sellerAddress } =
+      await this.psbtService.generateSwapPsbt({
+        walletType,
+        sellerInscriptionIds,
+        buyerInscriptionIds,
+        price: price * 10 ** 8,
+      });
 
-  //   const { psbt, inputCount } = await this.psbtService.generateSwapPsbt({
-  //     ownerPubkey: user.pubkey,
-  //     buyerPaymentPubkey: buyerPubkey,
-  //     buyerTaprootPubkey: user.pubkey,
-  //     walletType,
-  //     recipient,
-  //     network: this.network,
-  //     sellerInscriptionId,
-  //     buyerInscriptionIds,
-  //     price: price * 10 ** 8,
-  //     ownerWalletType: txData.walletType,
-  //     buyerWalletType: user.walletType,
-  //     ownerPaymentAddress: txData.paymentAddress,
-  //   });
+    let [buyer, seller] = await Promise.all([
+      this.userService.findByAddress(buyerAddress),
+      this.userService.findByAddress(sellerAddress),
+    ]);
 
-  //   const inscriptions = await this.inscriptionService.findInscriptionByIds(
-  //     buyerInscriptionIds,
-  //   );
+    if (!buyer) buyer = await this.userService.createWithAddress(buyerAddress);
+    if (!seller)
+      seller = await this.userService.createWithAddress(sellerAddress);
 
-  //   const expiredAt = new Date();
-  //   const time = expiredIn.match(/\d+/)[0];
+    const [buyerInscriptions, sellerInscriptions] = await Promise.all([
+      this.inscriptionService.findInscriptionByIds(buyerInscriptionIds),
+      this.inscriptionService.findInscriptionByIds(sellerInscriptionIds),
+    ]);
 
-  //   if (expiredIn.endsWith('m')) {
-  //     const minutes = expiredAt.getMinutes();
-  //     expiredAt.setMinutes(minutes + Number(time));
-  //   } else if (expiredIn.endsWith('h')) {
-  //     const hours = expiredAt.getHours();
-  //     expiredAt.setHours(hours + Number(time));
-  //   } else if (expiredIn.endsWith('d')) {
-  //     const date = expiredAt.getDate();
-  //     expiredAt.setHours(date + Number(time));
-  //   }
+    const expiredAt = new Date();
+    const time = expiredIn.match(/\d+/)[0];
 
-  //   const swapOffer = this.swapOfferRepository.create({
-  //     buyNowActivityId: [txData.buyNowActivityId],
-  //     price: price,
-  //     status: OfferStatus.CREATED,
-  //     psbt,
-  //     user,
-  //     expiredAt,
-  //   });
+    if (expiredIn.endsWith('m')) {
+      const minutes = expiredAt.getMinutes();
+      expiredAt.setMinutes(minutes + Number(time));
+    } else if (expiredIn.endsWith('h')) {
+      const hours = expiredAt.getHours();
+      expiredAt.setHours(hours + Number(time));
+    } else if (expiredIn.endsWith('d')) {
+      const date = expiredAt.getDate();
+      expiredAt.setHours(date + Number(time));
+    }
 
-  //   const savedSwapOffer = await this.swapOfferRepository.save(swapOffer);
+    const swapOffer = this.swapOfferRepository.create({
+      price,
+      status: OfferStatus.CREATED,
+      psbt,
+      buyer,
+      seller,
+      expiredAt,
+    });
 
-  //   await Promise.all(
-  //     inscriptions.map((inscription) =>
-  //       this.swapInscriptionRepository.save({
-  //         inscriptionId: inscription.id,
-  //         swap_offer_id: savedSwapOffer.id,
-  //       }),
-  //     ),
-  //   );
+    const savedSwapOffer = await this.swapOfferRepository.save(swapOffer);
 
-  //   if (walletType === WalletTypes.XVERSE) {
-  //     const base64Psbt = this.psbtService.convertHexedToBase64(psbt);
-  //     return { psbt: base64Psbt, inputCount };
-  //   }
+    // await Promise.all(
+    //   inscriptions.map((inscription) =>
+    //     this.swapInscriptionRepository.save({
+    //       inscriptionId: inscription.id,
+    //       swap_offer_id: savedSwapOffer.id,
+    //     }),
+    //   ),
+    // );
 
-  //   return { psbt, inputCount };
-  // }
+    return { psbt };
+  }
 
   // async cancelSwapOffer(uuid: string, address: string): Promise<boolean> {
   //   const user = await this.userService.findByAddress(address);

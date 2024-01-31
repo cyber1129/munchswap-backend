@@ -10,6 +10,8 @@ import { WalletTypes } from '@src/user/user.entity';
 
 Bitcoin.initEccLib(ecc);
 
+export const SIGNATURE_SIZE = 126;
+
 export interface IInscriptionWithUtxo extends IUtxo {
   address: string;
   inscriptionId: string;
@@ -42,38 +44,19 @@ export class PsbtService {
 
     if (networkType === 'mainnet') this.network = bitcoin;
     else this.network = testnet;
-
-    this.generateSwapPsbt({
-      walletType: WalletTypes.UNISAT,
-      network: this.network,
-      sellerInscriptionIds: [
-        '2a8c410566ec4799356a135a9b8add0d1faa58978a085e289805f97990555b8ei0',
-        'e2aee5573501d08da9e55146ecc1f4707f59722ca3a3a0b3e21a5feba1e49957i0',
-      ],
-      buyerInscriptionIds: [
-        '54d9ac1305fdc1c47fd833da990254157177d6ae9530e36ebd89496b7979533fi0',
-      ],
-      price: 0,
-    });
-
-    this.getBtcUtxoByAddress(
-      'tb1pn952y2hrpzf9gfnmsg0zht2smhn2lrzxz569vtpt23aj8wqgndmsc4g58d',
-    );
   }
 
   async generateSwapPsbt({
     walletType,
-    network,
     sellerInscriptionIds,
     buyerInscriptionIds,
     price,
   }: {
     walletType: WalletTypes;
-    network: Network;
     sellerInscriptionIds: string[];
     buyerInscriptionIds: string[];
     price: number;
-  }): Promise<{psbt: string}> {
+  }): Promise<{ psbt: string; buyerAddress: string; sellerAddress: string }> {
     const buyerInscriptionsWithUtxo = await Promise.all(
       buyerInscriptionIds.map((inscriptionId) =>
         this.getInscriptionWithUtxo(inscriptionId),
@@ -134,12 +117,14 @@ export class PsbtService {
     });
 
     const btcUtxos = await this.getBtcUtxoByAddress(buyerAddress);
-    const feeRate = await this.getFeeRate(network);
+    const feeRate = await this.getFeeRate(this.network);
 
     let amount = 0;
 
     for (const utxo of btcUtxos) {
-      if (amount < price + (psbt.inputCount + 5) * 60 * feeRate) {
+      const fee = this.calculateTxFee(psbt, feeRate);
+
+      if (amount < price + fee && utxo.value > 10000) {
         amount += utxo.value;
         psbt.addInput({
           hash: utxo.txid,
@@ -148,21 +133,49 @@ export class PsbtService {
             value: utxo.value,
             script: buyerScriptpubkey,
           },
+          sighashType: Bitcoin.Transaction.SIGHASH_ALL,
         });
       }
     }
 
-    if (amount < price + (psbt.inputCount + 5) * 60 * feeRate)
+    const fee = this.calculateTxFee(psbt, feeRate);
+
+    if (amount < price + fee)
       throw new BadRequestException(
         "You don't have enough bitcoin in your wallet.",
       );
 
+    if (price > 0)
+      psbt.addOutput({
+        address: sellerAddress,
+        value: price,
+      });
+
     psbt.addOutput({
       address: buyerAddress,
-      value: amount - (price + (psbt.inputCount + 5) * 60 * feeRate),
+      value: amount - price - fee,
     });
 
-    return {psbt: psbt.toHex()}
+    return { psbt: psbt.toHex(), buyerAddress, sellerAddress };
+  }
+
+  calculateTxFee(psbt: Bitcoin.Psbt, feeRate: number): number {
+    const tx = new Bitcoin.Transaction();
+
+    for (let i = 0; i < psbt.txInputs.length; i++) {
+      const txInput = psbt.txInputs[i];
+
+      tx.addInput(txInput.hash, txInput.index, txInput.sequence);
+      tx.setWitness(i, [Buffer.alloc(SIGNATURE_SIZE)]);
+    }
+
+    for (let txOutput of psbt.txOutputs) {
+      tx.addOutput(txOutput.script, txOutput.value);
+    }
+    tx.addOutput(psbt.txOutputs[0].script, psbt.txOutputs[0].value);
+    tx.addOutput(psbt.txOutputs[0].script, psbt.txOutputs[0].value);
+
+    return tx.virtualSize() * feeRate;
   }
 
   async getUtxos(address: string, network: Network): Promise<IUtxo[]> {

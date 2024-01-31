@@ -40,6 +40,16 @@ export class UserService {
     return this.findByUuid(user.uuid);
   }
 
+  async createWithAddress(address: string): Promise<User> {
+    const userEntity: Partial<User> = {
+      address,
+    };
+
+    const user = await this.userRepository.save(userEntity, { reload: false });
+
+    return this.findByUuid(user.uuid);
+  }
+
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });
   }

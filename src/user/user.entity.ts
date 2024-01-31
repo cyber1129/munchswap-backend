@@ -32,27 +32,31 @@ export class User {
   @Column({ type: 'varchar', nullable: false, length: 36 })
   uuid: string;
 
-  @ApiProperty({ description: 'Public key', maximum: 255, required: true })
+  @ApiProperty({ description: 'Public key', maximum: 255, required: false })
   @Column({
     type: 'varchar',
-    nullable: false,
+    nullable: true,
     length: 255,
   })
   pubkey: string;
 
-  @ApiProperty({ description: 'Address', maximum: 255, required: true })
+  @ApiProperty({ description: 'Address', maximum: 255, required: false })
   @Column({ type: 'varchar', nullable: false, length: 255 })
   address: string;
 
-  @ApiProperty({ description: 'Payment Address', maximum: 255, required: true })
-  @Column({ type: 'varchar', nullable: false, length: 255, default: '' })
+  @ApiProperty({
+    description: 'Payment Address',
+    maximum: 255,
+    required: false,
+  })
+  @Column({ type: 'varchar', nullable: true, length: 255, default: '' })
   paymentAddress: string;
 
-  @ApiProperty({ description: 'Wallet type', maximum: 255, required: true })
-  @Column({ type: 'enum', enum: WalletTypes, nullable: false })
+  @ApiProperty({ description: 'Wallet type', maximum: 255, required: false })
+  @Column({ type: 'enum', enum: WalletTypes, nullable: true })
   walletType: WalletTypes;
 
-  @ApiProperty({ description: 'Role', maximum: 255, required: true })
+  @ApiProperty({ description: 'Role', maximum: 255, required: false })
   @Column({ type: 'enum', enum: Role, nullable: false, default: Role.CUSTOMER })
   role: Role;
 

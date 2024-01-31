@@ -21,6 +21,7 @@ import { BuyerSwapInscriptionRepository } from './buyer-swap-inscription.reposit
 import { SellerSwapInscriptionRepository } from './seller-swap-inscription.repository';
 import { Inscription } from '@src/inscription/inscription.entity';
 import { BuyerSwapInscription } from './buyer-swap-inscription.entity';
+import { SellerSwapInscription } from './seller-swap-inscription.entity';
 
 @Injectable()
 export class SwapOfferService {
@@ -131,30 +132,49 @@ export class SwapOfferService {
     return swapInscription;
   }
 
-  // async cancelSwapOffer(uuid: string, address: string): Promise<boolean> {
-  //   const user = await this.userService.findByAddress(address);
+  async saveSellerSwapInscription(
+    inscription: Inscription,
+    swapOffer: SwapOffer,
+  ): Promise<Partial<SellerSwapInscription>> {
+    const swapInscriptionEntity: Partial<SellerSwapInscription> = {
+      inscription,
+      swapOffer,
+    };
+    const swapInscription = await this.sellerSwapInscriptionRepository.save(
+      swapInscriptionEntity,
+      { reload: false },
+    );
 
-  //   const swapOffer = await this.swapOfferRepository.findOne({
-  //     where: {
-  //       uuid,
-  //     },
-  //   });
+    return swapInscription;
+  }
 
-  //   if (!swapOffer)
-  //     throw new BadRequestException('Can not find the buy now offer');
+  async cancelSwapOffer(uuid: string, address: string): Promise<boolean> {
+    const user = await this.userService.findByAddress(address);
 
-  //   if (swapOffer.userId !== user.id)
-  //     throw new BadRequestException('You can not cancel the offer');
+    const swapOffer = await this.swapOfferRepository.findOne({
+      where: {
+        uuid,
+      },
+    });
 
-  //   await this.swapOfferRepository.update(
-  //     {
-  //       uuid,
-  //     },
-  //     { status: OfferStatus.CANCELED },
-  //   );
+    if (!swapOffer)
+      throw new BadRequestException('Can not find the buy now offer');
 
-  //   return true;
-  // }
+    if (swapOffer.buyer.id !== user.id)
+      throw new BadRequestException('You can not cancel the offer');
+
+    if (swapOffer.seller.id !== user.id)
+      throw new BadRequestException('You can not cancel the offer');
+
+    await this.swapOfferRepository.update(
+      {
+        uuid,
+      },
+      { status: OfferStatus.CANCELED },
+    );
+
+    return true;
+  }
 
   // async buyerSignPsbt(body: BuyerSignPsbtDto, userAddress: string) {
   //   const user = await this.userService.findByAddress(userAddress);

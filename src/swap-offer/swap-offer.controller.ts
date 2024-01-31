@@ -54,6 +54,23 @@ export class SwapOfferController {
     };
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description: `Cancel swap offer`, tags: ['Swap offer'] })
+  @ApiResponse(ApiResponseHelper.success(SignPsbtResult, HttpStatus.CREATED))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('/cancel')
+  async cancelBuyNowOffer(
+    @Request() req,
+    @Body() body: CancelSwapOfferDto,
+  ): Promise<{ msg: string }> {
+    await this.swapOfferService.cancelSwapOffer(body.uuid, req.user.address);
+
+    return {
+      msg: 'You successfully canceled an swap offer',
+    };
+  }
+
   // @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)
   // @ApiOperation({ description: `Buyer sign psbt`, tags: ['Swap offer'] })
@@ -68,23 +85,6 @@ export class SwapOfferController {
 
   //   return {
   //     msg: 'Congratulations! Successfully created a swap offer',
-  //   };
-  // }
-
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  // @ApiOperation({ description: `Cancel swap offer`, tags: ['Swap offer'] })
-  // @ApiResponse(ApiResponseHelper.success(SignPsbtResult, HttpStatus.CREATED))
-  // @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  // @Post('/cancel')
-  // async cancelBuyNowOffer(
-  //   @Request() req,
-  //   @Body() body: CancelSwapOfferDto,
-  // ): Promise<{ msg: string }> {
-  //   await this.swapOfferService.cancelSwapOffer(body.uuid, req.user.address);
-
-  //   return {
-  //     msg: 'You successfully canceled an swap offer',
   //   };
   // }
 

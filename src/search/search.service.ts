@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { CollectionService } from '@src/collection/collection.service';
 import { InscriptionService } from '@src/inscription/inscription.service';
+import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
 
 @Injectable()
@@ -10,15 +11,56 @@ export class SearchService {
     private readonly inscriptionService: InscriptionService,
     private readonly collectionService: CollectionService,
     private readonly userService: UserService,
+    private readonly psbtService: PsbtService,
   ) {}
 
   async search(keyWord: string) {
-    const [inscriptions, collections, users] = await Promise.all([
-      this.inscriptionService.search(keyWord),
+    const [inscription, collection, address] = await Promise.all([
+      this.searchInscription(keyWord),
       this.collectionService.search(keyWord),
-      this.userService.search(keyWord),
+      this.searchByAddress(keyWord),
     ]);
 
-    return { inscriptions, collections, users };
+    return { inscription, collection, address };
+  }
+
+  async searchInscription(inscriptionId: string) {
+    try {
+      const [inscription, inscriptionUtxo] = await Promise.all([
+        this.inscriptionService.search(inscriptionId),
+        this.psbtService.getInscriptionWithUtxo(inscriptionId),
+      ]);
+
+      return { ...inscriptionUtxo, ...inscription };
+    } catch (_error) {
+      return {};
+    }
+  }
+
+  async searchByAddress(address: string) {
+    try {
+      const inscriptions = await this.psbtService.getInscriptionByAddress(
+        address,
+      );
+
+      const inscriptionIds = inscriptions.map(
+        (inscription) => inscription.inscriptionId,
+      );
+      const collectionInfos =
+        await this.inscriptionService.findInscriptionByIdsWithCollection(
+          inscriptionIds,
+        );
+
+      return inscriptions.map((inscription) => {
+        const collection = collectionInfos.find(
+          (collectionInfo) =>
+            collectionInfo.inscriptionId === inscription.inscriptionId,
+        );
+
+        return { ...inscription, collection };
+      });
+    } catch (error) {
+      return {};
+    }
   }
 }

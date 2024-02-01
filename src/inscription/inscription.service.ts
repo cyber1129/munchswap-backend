@@ -50,6 +50,22 @@ export class InscriptionService {
     });
   }
 
+  async findInscriptionByIdsWithCollection(
+    inscriptionIds: string[],
+  ): Promise<Inscription[]> {
+    return this.inscriptionRepository.find({
+      where: { inscriptionId: In(inscriptionIds) },
+      relations: { collection: true },
+      select: {
+        collection: {
+          name: true,
+          imgUrl: true,
+          description: true,
+        },
+      },
+    });
+  }
+
   async findInscriptionAndSave(
     inscriptionIds: string[],
   ): Promise<Inscription[]> {
@@ -341,10 +357,10 @@ export class InscriptionService {
     }
   }
 
-  async search(keyWord: string): Promise<Inscription[]> {
-    const inscriptions = await this.inscriptionRepository.find({
+  async search(keyWord: string): Promise<Inscription | null> {
+    const inscription = await this.inscriptionRepository.findOne({
       where: {
-        inscriptionId: Like(`%${keyWord}%`),
+        inscriptionId: keyWord,
       },
       relations: {
         collection: true,
@@ -360,15 +376,15 @@ export class InscriptionService {
       },
     });
 
-    inscriptions.forEach((inscription) => {
-      delete inscription.id;
-      delete inscription.uuid;
-      delete inscription.createdAt;
-      delete inscription.updatedAt;
-      delete inscription.deletedAt;
-      delete inscription.collectionId;
-    });
+    if (!inscription) return;
 
-    return inscriptions;
+    delete inscription.id;
+    delete inscription.uuid;
+    delete inscription.createdAt;
+    delete inscription.updatedAt;
+    delete inscription.deletedAt;
+    delete inscription.collectionId;
+
+    return inscription;
   }
 }

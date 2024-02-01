@@ -12,7 +12,9 @@ Bitcoin.initEccLib(ecc);
 
 export const SIGNATURE_SIZE = 126;
 
-export interface IInscriptionWithUtxo extends IUtxo {
+export interface IInscriptionWithUtxo extends IUtxo, IInscription {}
+
+export interface IInscription {
   address: string;
   inscriptionId: string;
   inscriptionNumber: number;
@@ -328,6 +330,9 @@ export class PsbtService {
 
       const res = await axios.get(url, config);
 
+      if (res.data.code === -1)
+        throw new BadRequestException('Invalid inscription id');
+
       return {
         address: res.data.data.address,
         contentType: res.data.data.contentType,
@@ -340,10 +345,10 @@ export class PsbtService {
       };
     } catch (error) {
       this.logger.error(
-        'Ordinal api is not working now, please try again later',
+        'Ordinal api is not working now, please try again later Or invalid inscription id',
       );
       throw new BadRequestException(
-        'Ordinal api is not working now, please try again later',
+        'Ordinal api is not working now, please try again later Or invalid inscription id',
       );
     }
   }
@@ -393,5 +398,50 @@ export class PsbtService {
         vout: utxo.vout,
       };
     });
+  }
+
+  async getInscriptionByAddress(address: string): Promise<IInscription[]> {
+    try {
+      const url =
+        this.network === testnet
+          ? `https://open-api-testnet.unisat.io/v1/indexer/address/${address}/inscription-utxo-data`
+          : `https://open-api-s1.unisat.io/v1/indexer/address/${address}/inscription-utxo-data`;
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${this.unisatApiKey}`,
+        },
+      };
+
+      let cursor = 0;
+      const inscriptionUtxos: IInscription[] = [];
+
+      while (1) {
+        const res = await axios.get(url, config);
+
+        if (res.data.code === -1)
+          throw new BadRequestException('Invalid addres');
+
+        inscriptionUtxos.push(
+          res.data.data.utxo.map((inscription) => {
+            return {
+              address: inscription.address,
+              inscriptionId: inscription.inscriptions[0].inscriptionId,
+              inscriptionNumber: inscription.inscriptions[0].inscriptionNumber,
+              contentType: '',
+            };
+          }),
+        );
+
+        cursor += res.data.data.utxo.length;
+        if (cursor === res.data.data.total) break;
+      }
+
+      return inscriptionUtxos;
+    } catch (error) {
+      throw new BadRequestException(
+        'Ordinal api is not working now or Invalid address',
+      );
+    }
   }
 }

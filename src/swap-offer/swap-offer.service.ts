@@ -1,5 +1,5 @@
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { LessThan, Not } from 'typeorm';
+import { Brackets, LessThan, Not } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { testnet, bitcoin, Network } from 'bitcoinjs-lib/src/networks';
@@ -353,72 +353,107 @@ export class SwapOfferService {
     });
   }
 
-  // async getPendingOffers(userAddress: string, pageOptionsDto: PageOptionsDto) {
-  //   const user = await this.userService.findByAddress(userAddress);
+  async getPushedOffers(userAddress: string, pageOptionsDto: PageOptionsDto) {
+    const user = await this.userService.findByAddress(userAddress);
 
-  //   const swapOffers = await this.swapOfferRepository.find({
-  //     select: {
-  //       user: {
-  //         name: true,
-  //         address: true,
-  //       },
-  //     },
-  //     where: {
-  //       userId: user.id,
-  //       status: OfferStatus.SIGNED,
-  //     },
-  //     relations: {
-  //       buyNowActivity: { inscription: true, user: true },
-  //       user: true,
-  //       swapInscription: { inscription: true },
-  //     },
-  //     skip:
-  //       pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
-  //     take: pageOptionsDto.take,
-  //     order: {
-  //       id: pageOptionsDto.order,
-  //     },
-  //   });
+    console.log(user);
 
-  //   const entities = swapOffers.map((swapOffer) => {
-  //     return {
-  //       price: swapOffer.price,
-  //       psbt: swapOffer.psbt,
-  //       uuid: swapOffer.uuid,
-  //       expiredAt: swapOffer.expiredAt,
-  //       buyNowActivity: {
-  //         inscription: {
-  //           inscriptionId: swapOffer.buyNowActivity.inscription.inscriptionId,
-  //         },
-  //         user: {
-  //           name: swapOffer.buyNowActivity.user.name,
-  //           address: swapOffer.buyNowActivity.user.address,
-  //         },
-  //       },
-  //       inscription: {
-  //         inscriptionIds: swapOffer.swapInscription.map(
-  //           (inscription) => inscription.inscription.inscriptionId,
-  //         ),
-  //       },
-  //     };
-  //   });
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        seller: {
+          address: true,
+        },
+        buyer: {
+          address: true,
+        },
+      },
+      where: [
+        {
+          seller: {
+            id: user.id,
+          },
+          status: OfferStatus.PUSHED,
+        },
+        {
+          buyer: {
+            id: user.id,
+          },
+          status: OfferStatus.PUSHED,
+        },
+      ],
+      relations: {
+        buyerSwapInscription: {
+          inscription: { collection: true },
+        },
+        sellerSwapInscription: {
+          inscription: { collection: true },
+        },
+        seller: true,
+        buyer: true,
+      },
+      skip:
+        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
+      take: pageOptionsDto.take,
+      order: {
+        id: pageOptionsDto.order,
+      },
+    });
 
-  //   if (user.walletType === WalletTypes.XVERSE)
-  //     entities.forEach((offer) => {
-  //       offer.psbt = this.psbtService.convertHexedToBase64(offer.psbt);
-  //     });
+    console.log(swapOffers);
 
-  //   const itemCount = await this.swapOfferRepository
-  //     .createQueryBuilder('swap_offer')
-  //     .addFrom(BuyNowActivity, 'buy_now_activity')
-  //     .where(`swap_offer.user_id=${user.id}`)
-  //     .andWhere(`swap_offer.status='${OfferStatus.SIGNED}'`)
-  //     .andWhere('swap_offer.buy_now_activity_id=buy_now_activity.id')
-  //     .andWhere('buy_now_activity.deleted_at IS NULL')
-  //     .getCount();
+    const entities = swapOffers.map((swapOffer) => {
+      return {
+        price: swapOffer.price,
+        expiredAt: swapOffer.expiredAt,
+        buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
+          return {
+            inscription: {
+              inscriptionId: inscription.inscriptionId,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                discord: inscription.inscription.collection.discord,
+                website: inscription.inscription.collection.website,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        }),
+        sellerInscripion: swapOffer.sellerSwapInscription.map((inscription) => {
+          return {
+            inscription: {
+              inscriptionId: inscription.inscriptionId,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                discord: inscription.inscription.collection.discord,
+                website: inscription.inscription.collection.website,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        }),
+        buyer: swapOffer.buyer,
+        seller: swapOffer.seller,
+      };
+    });
 
-  //   const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+    const itemCount = await this.swapOfferRepository
+      .createQueryBuilder('swap_offer')
+      .andWhere(
+        new Brackets((subQuery) =>
+          subQuery
+            .where(`swap_offer.buyer_id=${user.id}`)
+            .orWhere(`swap_offer.seller_id=${user.id}`),
+        ),
+      )
+      .andWhere(`swap_offer.status='${OfferStatus.PUSHED}'`)
+      .getCount();
 
-  //   return new PageDto(entities, pageMetaDto);
-  // }
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
+  }
 }

@@ -23,15 +23,15 @@ export class Collection {
   uuid: string;
 
   @ApiProperty({ description: `name`, maximum: 80 })
-  @Column({ type: 'varchar', nullable: false, length: 80 })
+  @Column({ type: 'varchar', nullable: true, length: 80 })
   name: string;
 
   @ApiProperty({ description: `Description`, maximum: 1200 })
-  @Column({ type: 'varchar', nullable: false, length: 1200 })
+  @Column({ type: 'varchar', nullable: true, length: 1200 })
   description: string;
 
   @ApiProperty({ description: `Banner Image Url`, maximum: 255 })
-  @Column({ type: 'varchar', nullable: false, length: 255 })
+  @Column({ type: 'varchar', nullable: true, length: 255 })
   imgUrl: string;
 
   @ApiProperty({ description: `Website Url`, maximum: 255 })

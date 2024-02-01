@@ -50,6 +50,31 @@ export class InscriptionService {
     });
   }
 
+  async findInscriptionAndSave(
+    inscriptionIds: string[],
+  ): Promise<Inscription[]> {
+    return Promise.all(
+      inscriptionIds.map(async (inscriptionId) => {
+        const inscription = await this.inscriptionRepository.findOne({
+          where: { inscriptionId },
+        });
+
+        if (inscription) return inscription;
+
+        const inscriptoinEntity = await this.inscriptionRepository.create({
+          inscriptionId,
+          collectionId: 1,
+        });
+
+        const savedInscriptoin = await this.inscriptionRepository.save(
+          inscriptoinEntity,
+        );
+
+        return savedInscriptoin;
+      }),
+    );
+  }
+
   async getInscriptionInfo(inscriptionId: string) {
     const inscriptionInfo = await this.inscriptionRepository.findOne({
       select: {
@@ -146,16 +171,23 @@ export class InscriptionService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async createInscription(
-    collectionId: number,
-    inscriptionId: string,
-  ): Promise<Inscription> {
-    const inscription: Partial<Inscription> = {
+  async createInscription(collectionId: number, inscriptionId: string) {
+    const inscription = await this.inscriptionRepository.findOne({
+      where: { inscriptionId },
+    });
+
+    if (inscription)
+      return this.inscriptionRepository.update(
+        { inscriptionId },
+        { collectionId },
+      );
+
+    const inscriptionEntity: Partial<Inscription> = {
       collectionId,
       inscriptionId,
     };
 
-    return this.inscriptionRepository.save(inscription);
+    this.inscriptionRepository.save(inscriptionEntity);
   }
 
   async checkInscriptionOwner(

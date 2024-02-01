@@ -11,7 +11,18 @@ export class CollectionService {
   constructor(
     private collectionRepository: CollectionRepository,
     private inscriptionService: InscriptionService,
-  ) {}
+  ) {
+    this.addTempCollection();
+  }
+
+  async addTempCollection() {
+    const count = await this.collectionRepository.count();
+
+    if (count > 0) return;
+
+    const collectionEntity = this.collectionRepository.create();
+    this.collectionRepository.save(collectionEntity);
+  }
 
   async createCollection(body: CreateCollectionDto) {
     const collection: Partial<Collection> = {

@@ -78,8 +78,8 @@ export class SwapOfferService {
       seller = await this.userService.createWithAddress(sellerAddress);
 
     const [buyerInscriptions, sellerInscriptions] = await Promise.all([
-      this.inscriptionService.findInscriptionByIds(buyerInscriptionIds),
-      this.inscriptionService.findInscriptionByIds(sellerInscriptionIds),
+      this.inscriptionService.findInscriptionAndSave(buyerInscriptionIds),
+      this.inscriptionService.findInscriptionAndSave(sellerInscriptionIds),
     ]);
 
     const expiredAt = new Date();
@@ -93,7 +93,7 @@ export class SwapOfferService {
       expiredAt.setHours(hours + Number(time));
     } else if (expiredIn.endsWith('d')) {
       const date = expiredAt.getDate();
-      expiredAt.setHours(date + Number(time));
+      expiredAt.setDate(date + Number(time));
     }
 
     const swapOffer = this.swapOfferRepository.create({
@@ -275,8 +275,8 @@ export class SwapOfferService {
         status: OfferStatus.SIGNED,
       },
       relations: {
-        buyerSwapInscription: { inscription: { collection: true } },
-        sellerSwapInscription: { inscription: { collection: true } },
+        buyerSwapInscription: { inscription: true },
+        sellerSwapInscription: { inscription: true },
         buyer: true,
         seller: true,
       },
@@ -296,31 +296,16 @@ export class SwapOfferService {
         seller: swapOffer.seller.address,
         uuid: swapOffer.uuid,
         expiredAt: swapOffer.expiredAt,
+        status: swapOffer.status,
         buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscriptionId: inscription.inscription.inscriptionId,
-            collection: {
-              imgUrl: inscription.inscription.collection.imgUrl,
-              description: inscription.inscription.collection.description,
-              name: inscription.inscription.collection.name,
-              discord: inscription.inscription.collection.discord,
-              website: inscription.inscription.collection.website,
-              twitter: inscription.inscription.collection.twitter,
-            },
           };
         }),
         sellerInscription: swapOffer.sellerSwapInscription.map(
           (inscription) => {
             return {
               inscriptionId: inscription.inscription.inscriptionId,
-              collection: {
-                imgUrl: inscription.inscription.collection.imgUrl,
-                description: inscription.inscription.collection.description,
-                name: inscription.inscription.collection.name,
-                discord: inscription.inscription.collection.discord,
-                website: inscription.inscription.collection.website,
-                twitter: inscription.inscription.collection.twitter,
-              },
             };
           },
         ),
@@ -462,25 +447,25 @@ export class SwapOfferService {
   }
 
   async getSwapOfferById(uuid: string): Promise<any> {
-    const swapOffer = await this.swapOfferRepository.findOne({
-      where: {
-        uuid,
-      },
+    const [swapOffer] = await this.swapOfferRepository.find({
       select: {
-        buyer: {
-          address: true,
-        },
         seller: {
           address: true,
         },
-        buyerSwapInscription: true,
-        sellerSwapInscription: true,
+        buyer: {
+          address: true,
+        },
       },
+      where: { uuid },
       relations: {
-        buyer: true,
+        buyerSwapInscription: {
+          inscription: { collection: true },
+        },
+        sellerSwapInscription: {
+          inscription: { collection: true },
+        },
         seller: true,
-        buyerSwapInscription: { inscription: { collection: true } },
-        sellerSwapInscription: { inscription: { collection: true } },
+        buyer: true,
       },
     });
 

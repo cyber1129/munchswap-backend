@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpStatus,
+  Param,
   Post,
   Query,
   Request,
@@ -80,11 +81,15 @@ export class SwapOfferController {
   async buyerSignPsbt(
     @Request() req,
     @Body() body: BuyerSignPsbtDto,
-  ): Promise<{ msg: string }> {
-    await this.swapOfferService.buyerSignPsbt(body, req.user.address);
+  ): Promise<{ msg: string; offerId: string }> {
+    const offerUuid = await this.swapOfferService.buyerSignPsbt(
+      body,
+      req.user.address,
+    );
 
     return {
       msg: 'Congratulations! Successfully created a swap offer',
+      offerId: offerUuid,
     };
   }
 
@@ -139,5 +144,14 @@ export class SwapOfferController {
       req.user.address,
       pageOptionsDto,
     );
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ description: `Get swap offer details`, tags: ['Swap offer'] })
+  @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Get('/uuid/:uuid')
+  async getSwapofferById(@Param('uuid') uuid: string) {
+    return this.swapOfferService.getSwapOfferById(uuid);
   }
 }

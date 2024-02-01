@@ -176,7 +176,10 @@ export class SwapOfferService {
     return true;
   }
 
-  async buyerSignPsbt(body: BuyerSignPsbtDto, userAddress: string) {
+  async buyerSignPsbt(
+    body: BuyerSignPsbtDto,
+    userAddress: string,
+  ): Promise<string> {
     const user = await this.userService.findByAddress(userAddress);
 
     const swapOffer = await this.swapOfferRepository.findOne({
@@ -196,7 +199,7 @@ export class SwapOfferService {
       },
     );
 
-    return true;
+    return swapOffer.uuid;
   }
 
   async sellerSignPsbt(
@@ -356,8 +359,6 @@ export class SwapOfferService {
   async getPushedOffers(userAddress: string, pageOptionsDto: PageOptionsDto) {
     const user = await this.userService.findByAddress(userAddress);
 
-    console.log(user);
-
     const swapOffers = await this.swapOfferRepository.find({
       select: {
         seller: {
@@ -398,8 +399,6 @@ export class SwapOfferService {
         id: pageOptionsDto.order,
       },
     });
-
-    console.log(swapOffers);
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -455,5 +454,71 @@ export class SwapOfferService {
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
     return new PageDto(entities, pageMetaDto);
+  }
+
+  async getSwapOfferById(uuid: string): Promise<any> {
+    const swapOffer = await this.swapOfferRepository.findOne({
+      where: {
+        uuid,
+      },
+      select: {
+        buyer: {
+          address: true,
+        },
+        seller: {
+          address: true,
+        },
+        buyerSwapInscription: true,
+        sellerSwapInscription: true,
+      },
+      relations: {
+        buyer: true,
+        seller: true,
+        buyerSwapInscription: { inscription: { collection: true } },
+        sellerSwapInscription: { inscription: { collection: true } },
+      },
+    });
+
+    return {
+      uuid: swapOffer.uuid,
+      psbt: swapOffer.psbt,
+      buyer: swapOffer.buyer,
+      seller: swapOffer.seller,
+      expiredAt: swapOffer.expiredAt,
+      buyerSwapInscription: swapOffer.buyerSwapInscription.map(
+        (inscription) => {
+          return {
+            inscription: {
+              inscriptionId: inscription.id,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                website: inscription.inscription.collection.website,
+                discord: inscription.inscription.collection.discord,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        },
+      ),
+      sellerSwapInscription: swapOffer.sellerSwapInscription.map(
+        (inscription) => {
+          return {
+            inscription: {
+              inscriptionId: inscription.id,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                website: inscription.inscription.collection.website,
+                discord: inscription.inscription.collection.discord,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        },
+      ),
+    };
   }
 }

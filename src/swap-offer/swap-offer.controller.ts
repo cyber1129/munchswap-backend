@@ -43,6 +43,7 @@ export class SwapOfferController {
     @Body() body: GenerateSwapPsbtDto,
   ): Promise<{ psbt: string }> {
     const { psbt } = await this.swapOfferService.generatePsbt({
+      address: req.user.address,
       buyerInscriptionIds: body.buyerInscriptionIds,
       sellerInscriptionIds: body.sellerInscriptionIds,
       walletType: body.walletType,

@@ -43,12 +43,14 @@ export class SwapOfferService {
   }
 
   async generatePsbt({
+    address,
     buyerInscriptionIds,
     sellerInscriptionIds,
     walletType,
     price = 0,
     expiredIn,
   }: {
+    address: string;
     buyerInscriptionIds: string[];
     sellerInscriptionIds: string[];
     walletType: WalletTypes;
@@ -62,6 +64,9 @@ export class SwapOfferService {
         buyerInscriptionIds,
         price: price * 10 ** 8,
       });
+
+    if (address !== buyerAddress)
+      throw new BadRequestException('You are not owner of inscription');
 
     let [buyer, seller] = await Promise.all([
       this.userService.findByAddress(buyerAddress),

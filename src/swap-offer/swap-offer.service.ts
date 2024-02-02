@@ -530,7 +530,10 @@ export class SwapOfferService {
     return res.data.status.confirmed;
   }
 
-  async getPushedOffers(userAddress: string, pageOptionsDto: PageOptionsDto) {
+  async getUserPushedOffers(
+    userAddress: string,
+    pageOptionsDto: PageOptionsDto,
+  ) {
     const user = await this.userService.findByAddress(userAddress);
 
     const swapOffers = await this.swapOfferRepository.find({
@@ -570,7 +573,7 @@ export class SwapOfferService {
         pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
       take: pageOptionsDto.take,
       order: {
-        id: pageOptionsDto.order,
+        updatedAt: 'DESC',
       },
     });
 
@@ -622,6 +625,86 @@ export class SwapOfferService {
             .orWhere(`swap_offer.seller_id=${user.id}`),
         ),
       )
+      .andWhere(`swap_offer.status='${OfferStatus.PUSHED}'`)
+      .getCount();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
+  }
+
+  async getPushedOffers(pageOptionsDto: PageOptionsDto) {
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        seller: {
+          address: true,
+        },
+        buyer: {
+          address: true,
+        },
+      },
+      where: {
+        status: OfferStatus.PUSHED,
+      },
+      relations: {
+        buyerSwapInscription: {
+          inscription: { collection: true },
+        },
+        sellerSwapInscription: {
+          inscription: { collection: true },
+        },
+        seller: true,
+        buyer: true,
+      },
+      skip:
+        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
+      take: pageOptionsDto.take,
+      order: {
+        updatedAt: 'DESC',
+      },
+    });
+
+    const entities = swapOffers.map((swapOffer) => {
+      return {
+        price: swapOffer.price,
+        expiredAt: swapOffer.expiredAt,
+        buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
+          return {
+            inscription: {
+              inscriptionId: inscription.inscriptionId,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                discord: inscription.inscription.collection.discord,
+                website: inscription.inscription.collection.website,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        }),
+        sellerInscripion: swapOffer.sellerSwapInscription.map((inscription) => {
+          return {
+            inscription: {
+              inscriptionId: inscription.inscriptionId,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                discord: inscription.inscription.collection.discord,
+                website: inscription.inscription.collection.website,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        }),
+        buyer: swapOffer.buyer,
+        seller: swapOffer.seller,
+      };
+    });
+
+    const itemCount = await this.swapOfferRepository
+      .createQueryBuilder('swap_offer')
       .andWhere(`swap_offer.status='${OfferStatus.PUSHED}'`)
       .getCount();
 

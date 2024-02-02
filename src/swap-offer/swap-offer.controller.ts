@@ -158,18 +158,31 @@ export class SwapOfferController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ description: `Get history`, tags: ['Swap offer'] })
+  @ApiOperation({ description: `Get user history`, tags: ['Swap offer'] })
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/user-history')
+  async getUserPushedOffers(
+    @Request() req,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ) {
+    return this.swapOfferService.getUserPushedOffers(
+      req.user.address,
+      pageOptionsDto,
+    );
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description: `Get history`, tags: ['Swap offer'] })
+  @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Get('/history')
   async getPushedOffers(
     @Request() req,
     @Query() pageOptionsDto: PageOptionsDto,
   ) {
-    return this.swapOfferService.getPushedOffers(
-      req.user.address,
-      pageOptionsDto,
-    );
+    return this.swapOfferService.getPushedOffers(pageOptionsDto);
   }
 
   @ApiBearerAuth()

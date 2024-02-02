@@ -60,6 +60,10 @@ export class SwapOffer {
   @Column({ type: 'varchar', nullable: true, length: 5000 })
   buyerSignedPsbt: string;
 
+  @ApiProperty({ description: `Transaction id`, maximum: 100 })
+  @Column({ type: 'varchar', nullable: true, length: 100 })
+  txId: string;
+
   @Column({
     type: 'timestamp',
     nullable: false,

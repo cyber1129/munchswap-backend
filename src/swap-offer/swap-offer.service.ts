@@ -1,5 +1,5 @@
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Brackets, LessThan, Not } from 'typeorm';
+import { Brackets, In, LessThan, Not } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { testnet, bitcoin, Network } from 'bitcoinjs-lib/src/networks';
@@ -22,6 +22,7 @@ import { SellerSwapInscriptionRepository } from './seller-swap-inscription.repos
 import { Inscription } from '@src/inscription/inscription.entity';
 import { BuyerSwapInscription } from './buyer-swap-inscription.entity';
 import { SellerSwapInscription } from './seller-swap-inscription.entity';
+import axios from 'axios';
 
 @Injectable()
 export class SwapOfferService {
@@ -178,6 +179,8 @@ export class SwapOfferService {
       { status: OfferStatus.CANCELED },
     );
 
+    await this.swapOfferRepository.softDelete({ uuid });
+
     return true;
   }
 
@@ -243,7 +246,7 @@ export class SwapOfferService {
         {
           id: swapOffer.id,
         },
-        { status: OfferStatus.PUSHED },
+        { status: OfferStatus.PENDING, txId },
       );
 
       return txId;
@@ -254,6 +257,10 @@ export class SwapOfferService {
         },
         { status: OfferStatus.FAILED },
       );
+
+      await this.swapOfferRepository.softDelete({
+        id: swapOffer.id,
+      });
 
       throw new BadRequestException(
         'Transaction failed to push, buyer should create a psbt again',
@@ -333,7 +340,12 @@ export class SwapOfferService {
     await this.swapOfferRepository.update(
       {
         expiredAt: LessThan(new Date()),
-        status: Not(OfferStatus.PUSHED),
+        status: In([
+          OfferStatus.CREATED,
+          OfferStatus.SIGNED,
+          OfferStatus.ACCEPTED,
+          OfferStatus.FAILED,
+        ]),
       },
       {
         status: OfferStatus.EXPIRED,
@@ -342,8 +354,49 @@ export class SwapOfferService {
 
     await this.swapOfferRepository.softDelete({
       expiredAt: LessThan(new Date()),
-      status: Not(OfferStatus.PUSHED),
+      status: In([
+        OfferStatus.CREATED,
+        OfferStatus.SIGNED,
+        OfferStatus.ACCEPTED,
+        OfferStatus.FAILED,
+      ]),
     });
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async checkTx() {
+    const pendingTxs = await this.swapOfferRepository.find({
+      where: {
+        status: OfferStatus.PENDING,
+      },
+    });
+
+    await Promise.all(
+      pendingTxs.map(async (tx) => {
+        const isPushed = await this.checkTxIsPushed(tx.txId);
+
+        await this.swapOfferRepository.update(
+          {
+            txId: tx.txId,
+          },
+          {
+            status: OfferStatus.PUSHED,
+          },
+        );
+        return isPushed;
+      }),
+    );
+  }
+
+  async checkTxIsPushed(txId: string): Promise<boolean> {
+    const url =
+      this.network === testnet
+        ? `https://mempool.space/testnet/api/tx/${txId}`
+        : `https://mempool.space/api/tx/${txId}`;
+
+    const res = await axios.get(url);
+
+    return res.data.status.confirmed;
   }
 
   async getPushedOffers(userAddress: string, pageOptionsDto: PageOptionsDto) {

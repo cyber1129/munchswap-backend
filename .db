@@ -66,6 +66,7 @@ Table swap_offer {
   psbt varchar
   buyer_signed_psbt varchar
   seller_signed_psbt varchar
+  tx_id varbinary
   expiredAt datetime
 }
 

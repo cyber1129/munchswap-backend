@@ -137,7 +137,7 @@ export class SwapOfferController {
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/history')
-  async getPendingOffers(
+  async getPushedOffers(
     @Request() req,
     @Query() pageOptionsDto: PageOptionsDto,
   ) {
@@ -149,7 +149,7 @@ export class SwapOfferController {
 
   @ApiBearerAuth()
   @ApiOperation({ description: `Get swap offer details`, tags: ['Swap offer'] })
-  @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.success(SwapOffer, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/uuid/:uuid')
   async getSwapofferById(@Param('uuid') uuid: string) {

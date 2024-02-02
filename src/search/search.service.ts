@@ -43,13 +43,9 @@ export class SearchService {
 
   async searchByAddress(address: string) {
     try {
-      console.log('getting inscripitons');
-
       const inscriptions = await this.psbtService.getInscriptionByAddress(
         address,
       );
-
-      console.log('got inscriptions');
 
       const inscriptionIds = inscriptions.map(
         (inscription) => inscription.inscriptionId,

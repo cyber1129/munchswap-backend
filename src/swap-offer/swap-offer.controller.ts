@@ -120,7 +120,7 @@ export class SwapOfferController {
   @ApiOperation({ description: `Get active offers`, tags: ['Swap offer'] })
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/active-offers')
+  @Get('/user-active-offers')
   async getActiveOffers(
     @Request() req,
     @Query() pageOptionsDto: PageOptionsDto,
@@ -136,7 +136,7 @@ export class SwapOfferController {
   @ApiOperation({ description: `Get history`, tags: ['Swap offer'] })
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/history')
+  @Get('/user-history')
   async getPushedOffers(
     @Request() req,
     @Query() pageOptionsDto: PageOptionsDto,

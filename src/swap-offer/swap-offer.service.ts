@@ -268,7 +268,7 @@ export class SwapOfferService {
     }
   }
 
-  async getUserActiveOffers(
+  async getUserSendingOffers(
     ownerAddress: string,
     pageOptionsDto: PageOptionsDto,
   ) {
@@ -338,7 +338,77 @@ export class SwapOfferService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async getActiveOffers(pageOptionsDto: PageOptionsDto) {
+  async getUserGettingOffers(
+    ownerAddress: string,
+    pageOptionsDto: PageOptionsDto,
+  ) {
+    const user = await this.userService.findByAddress(ownerAddress);
+
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        buyer: {
+          address: true,
+        },
+      },
+      where: {
+        seller: { id: user.id },
+        status: OfferStatus.SIGNED,
+      },
+      relations: {
+        buyerSwapInscription: { inscription: true },
+        sellerSwapInscription: { inscription: true },
+        buyer: true,
+        seller: true,
+      },
+      skip:
+        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
+      take: pageOptionsDto.take,
+      order: {
+        updatedAt: 'DESC',
+      },
+    });
+
+    const entities = swapOffers.map((swapOffer) => {
+      return {
+        price: swapOffer.price,
+        psbt: swapOffer.psbt,
+        buyer: swapOffer.buyer.address,
+        seller: swapOffer.seller.address,
+        uuid: swapOffer.uuid,
+        expiredAt: swapOffer.expiredAt,
+        status: swapOffer.status,
+        buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
+          return {
+            inscriptionId: inscription.inscription.inscriptionId,
+          };
+        }),
+        sellerInscription: swapOffer.sellerSwapInscription.map(
+          (inscription) => {
+            return {
+              inscriptionId: inscription.inscription.inscriptionId,
+            };
+          },
+        ),
+      };
+    });
+
+    if (user.walletType === WalletTypes.XVERSE)
+      entities.forEach((offer) => {
+        offer.psbt = this.psbtService.convertHexedToBase64(offer.psbt);
+      });
+
+    const itemCount = await this.swapOfferRepository
+      .createQueryBuilder('swap_offer')
+      .where(`buyer_id=${user.id}`)
+      .andWhere(`swap_offer.status='${OfferStatus.SIGNED}'`)
+      .getCount();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
+  }
+
+  async getSendingOffers(pageOptionsDto: PageOptionsDto) {
     const swapOffers = await this.swapOfferRepository.find({
       select: {
         buyer: {

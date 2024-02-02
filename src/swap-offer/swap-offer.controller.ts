@@ -118,17 +118,26 @@ export class SwapOfferController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ description: `Get active offers`, tags: ['Swap offer'] })
-  @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer[]>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/user-active-offers')
-  async getActiveOffers(
+  @Get('/user-sending-offers')
+  async getUserActiveOffers(
     @Request() req,
     @Query() pageOptionsDto: PageOptionsDto,
   ) {
-    return this.swapOfferService.getActiveOffers(
+    return this.swapOfferService.getUserActiveOffers(
       req.user.address,
       pageOptionsDto,
     );
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ description: `Get active offers`, tags: ['Swap offer'] })
+  @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer[]>, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Get('/sending-offers')
+  async getActiveOffers(@Query() pageOptionsDto: PageOptionsDto) {
+    return this.swapOfferService.getActiveOffers(pageOptionsDto);
   }
 
   @ApiBearerAuth()

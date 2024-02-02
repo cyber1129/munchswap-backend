@@ -388,16 +388,31 @@ export class PsbtService {
       },
     };
 
-    const res = await axios.get(url, config);
+    let cursor = 0;
+    const utxos: IUtxo[] = [];
 
-    return (res.data.data.utxo as any[]).map((utxo) => {
-      return {
-        scriptpubkey: utxo.scriptPk,
-        txid: utxo.txid,
-        value: utxo.satoshi,
-        vout: utxo.vout,
-      };
-    });
+    while (1) {
+      const res = await axios.get(url, { ...config, params: { cursor } });
+
+      if (res.data.code === -1) throw new BadRequestException('Invalid addres');
+
+      utxos.push(
+        ...(res.data.data.utxo as any[]).map((utxo) => {
+          return {
+            scriptpubkey: utxo.scriptPk,
+            txid: utxo.txid,
+            value: utxo.satoshi,
+            vout: utxo.vout,
+          };
+        }),
+      );
+
+      cursor += res.data.data.utxo.length;
+
+      if (cursor === res.data.data.total) break;
+    }
+
+    return utxos;
   }
 
   async getInscriptionByAddress(address: string): Promise<IInscription[]> {
@@ -417,13 +432,18 @@ export class PsbtService {
       const inscriptionUtxos: IInscription[] = [];
 
       while (1) {
-        const res = await axios.get(url, config);
+        const res = await axios.get(url, {
+          ...config,
+          params: {
+            cursor,
+          },
+        });
 
         if (res.data.code === -1)
           throw new BadRequestException('Invalid addres');
 
         inscriptionUtxos.push(
-          res.data.data.utxo.map((inscription) => {
+          ...res.data.data.utxo.map((inscription) => {
             return {
               address: inscription.address,
               inscriptionId: inscription.inscriptions[0].inscriptionId,
@@ -434,6 +454,7 @@ export class PsbtService {
         );
 
         cursor += res.data.data.utxo.length;
+
         if (cursor === res.data.data.total) break;
       }
 

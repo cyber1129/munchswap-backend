@@ -17,11 +17,15 @@ export class SearchService {
   async search(keyWord: string) {
     const [inscription, collection, address] = await Promise.all([
       this.searchInscription(keyWord),
-      this.collectionService.search(keyWord),
+      this.searchCollection(keyWord),
       this.searchByAddress(keyWord),
     ]);
 
     return { inscription, collection, address };
+  }
+
+  async searchCollection(keyword: string) {
+    return this.collectionService.search(keyword);
   }
 
   async searchInscription(inscriptionId: string) {
@@ -39,9 +43,13 @@ export class SearchService {
 
   async searchByAddress(address: string) {
     try {
+      console.log('getting inscripitons');
+
       const inscriptions = await this.psbtService.getInscriptionByAddress(
         address,
       );
+
+      console.log('got inscriptions');
 
       const inscriptionIds = inscriptions.map(
         (inscription) => inscription.inscriptionId,

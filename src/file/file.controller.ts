@@ -15,10 +15,10 @@ import {
 } from '@nestjs/swagger';
 
 import { Role } from '@src/auth/role/role.decorator';
+import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { RoleGuard } from '@src/auth/role/role.guard';
 import { FileService } from './file.service';
-import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { UploadImage } from './file.type';
 
 @Controller('file')

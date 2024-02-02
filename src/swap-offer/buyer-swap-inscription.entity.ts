@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
+
 import { Inscription } from '@src/inscription/inscription.entity';
 import { SwapOffer } from './swap-offer.entity';
 

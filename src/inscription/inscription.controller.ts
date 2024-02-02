@@ -11,8 +11,6 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
-import { Role } from '@src/auth/role/role.decorator';
-import { RoleGuard } from '@src/auth/role/role.guard';
 import {
   PageDto,
   PageOptionsDto,

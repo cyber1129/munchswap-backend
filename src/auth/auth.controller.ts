@@ -2,9 +2,9 @@ import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { AuthService } from '@src/auth/auth.service';
+import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { LoginUserDto } from './dto/login-user.dto';
 import { GetSignMessageDto } from './dto/get-sign-message.dto';
-import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { AccessToken, GenerateMessage } from './auth.type';
 
 @Controller('auth')

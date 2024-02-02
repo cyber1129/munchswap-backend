@@ -17,14 +17,8 @@ import { PageOptionsDto } from '@src/common/pagination/pagination.types';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { CollectionService } from './collection.service';
 import { CreateCollectionDto } from './dto/create-collection.dto';
-import { GetPopularCollectionDto } from './dto/get-popular-collection.dto';
 import { Collection } from './collection.entity';
-import {
-  CollectionDetailedInfo,
-  CollectionInscriptions,
-  DiscoverCollection,
-  PopularCollection,
-} from './collection.type';
+import { CollectionInscriptions } from './collection.type';
 
 @Controller('collection')
 export class CollectionController {

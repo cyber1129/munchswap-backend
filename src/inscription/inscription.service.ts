@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Network } from 'bitcoinjs-lib';
-import { In, Like } from 'typeorm';
+import { In } from 'typeorm';
 import axios from 'axios';
 import { bitcoin, testnet } from 'bitcoinjs-lib/src/networks';
 

@@ -1,8 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import axios, { AxiosError } from 'axios';
-import { InjectConnection } from '@nestjs/typeorm';
-import { Connection, Like } from 'typeorm';
 
 import { LoginUserDto } from '@src/auth/dto/login-user.dto';
 import { User } from './user.entity';
@@ -10,16 +6,7 @@ import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
-  private btcPrice: number;
-  private logger: Logger;
-
-  constructor(
-    private readonly userRepository: UserRepository,
-    @InjectConnection() private readonly connection: Connection,
-  ) {
-    this.btcPrice = 0;
-    this.logger = new Logger(UserService.name);
-  }
+  constructor(private readonly userRepository: UserRepository) {}
 
   async findByAddress(address: string): Promise<User> {
     return this.userRepository.findOne({ where: { address } });

@@ -1,5 +1,5 @@
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Brackets, In, LessThan, Not } from 'typeorm';
+import { Brackets, In, LessThan } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { testnet, bitcoin, Network } from 'bitcoinjs-lib/src/networks';
@@ -667,7 +667,6 @@ export class SwapOfferService {
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
-        expiredAt: swapOffer.expiredAt,
         buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
@@ -711,6 +710,91 @@ export class SwapOfferService {
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
     return new PageDto(entities, pageMetaDto);
+  }
+
+  async getPushedOffersForSupportCollections() {
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        seller: {
+          address: true,
+        },
+        buyer: {
+          address: true,
+        },
+      },
+      where: [
+        {
+          status: OfferStatus.PUSHED,
+          sellerSwapInscription: {
+            inscription: {
+              collectionId: LessThan(5),
+            },
+          },
+        },
+        {
+          status: OfferStatus.PUSHED,
+          buyerSwapInscription: {
+            inscription: {
+              collectionId: LessThan(5),
+            },
+          },
+        },
+      ],
+      relations: {
+        buyerSwapInscription: {
+          inscription: { collection: true },
+        },
+        sellerSwapInscription: {
+          inscription: { collection: true },
+        },
+        seller: true,
+        buyer: true,
+      },
+      take: 20,
+      order: {
+        updatedAt: 'DESC',
+      },
+    });
+
+    const entities = swapOffers.map((swapOffer) => {
+      return {
+        price: swapOffer.price,
+        buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
+          return {
+            inscription: {
+              inscriptionId: inscription.inscriptionId,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                discord: inscription.inscription.collection.discord,
+                website: inscription.inscription.collection.website,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        }),
+        sellerInscripion: swapOffer.sellerSwapInscription.map((inscription) => {
+          return {
+            inscription: {
+              inscriptionId: inscription.inscriptionId,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                discord: inscription.inscription.collection.discord,
+                website: inscription.inscription.collection.website,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        }),
+        buyer: swapOffer.buyer,
+        seller: swapOffer.seller,
+      };
+    });
+
+    return entities;
   }
 
   async getSwapOfferById(uuid: string): Promise<any> {

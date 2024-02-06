@@ -399,7 +399,7 @@ export class SwapOfferService {
 
     const itemCount = await this.swapOfferRepository
       .createQueryBuilder('swap_offer')
-      .where(`buyer_id=${user.id}`)
+      .where(`seller_id=${user.id}`)
       .andWhere(`swap_offer.status='${OfferStatus.SIGNED}'`)
       .getCount();
 

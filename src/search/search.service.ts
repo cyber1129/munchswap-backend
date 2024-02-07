@@ -5,6 +5,8 @@ import { InscriptionService } from '@src/inscription/inscription.service';
 import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
 
+export const AllowedContentTypes = ['image/svg+xml'];
+
 @Injectable()
 export class SearchService {
   constructor(
@@ -47,7 +49,13 @@ export class SearchService {
         address,
       );
 
-      const inscriptionIds = inscriptions.map(
+      const allowInscriptions = inscriptions.filter((inscription) =>
+        AllowedContentTypes.find(
+          (contentType) => contentType === inscription.contentType,
+        ),
+      );
+
+      const inscriptionIds = allowInscriptions.map(
         (inscription) => inscription.inscriptionId,
       );
       const collectionInfos =
@@ -55,7 +63,7 @@ export class SearchService {
           inscriptionIds,
         );
 
-      return inscriptions.map((inscription) => {
+      return allowInscriptions.map((inscription) => {
         const collection = collectionInfos.find(
           (collectionInfo) =>
             collectionInfo.inscriptionId === inscription.inscriptionId,

@@ -799,7 +799,7 @@ export class SwapOfferService {
   }
 
   async getSwapOfferById(uuid: string): Promise<any> {
-    const [swapOffer] = await this.swapOfferRepository.find({
+    const swapOffer = await this.swapOfferRepository.findOne({
       select: {
         seller: {
           address: true,
@@ -820,6 +820,8 @@ export class SwapOfferService {
         buyer: true,
       },
     });
+
+    if (!swapOffer) throw new BadRequestException('Can not find swap offer');
 
     return {
       uuid: swapOffer.uuid,

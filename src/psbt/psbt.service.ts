@@ -415,7 +415,7 @@ export class PsbtService {
     return utxos;
   }
 
-  async getInscriptionByAddress(address: string): Promise<IInscription[]> {
+  async getInscriptionUtxoByAddress(address: string): Promise<IInscription[]> {
     try {
       const url =
         this.network === testnet
@@ -454,6 +454,57 @@ export class PsbtService {
         );
 
         cursor += res.data.data.utxo.length;
+
+        if (cursor === res.data.data.total) break;
+      }
+
+      return inscriptionUtxos;
+    } catch (error) {
+      throw new BadRequestException(
+        'Ordinal api is not working now or Invalid address',
+      );
+    }
+  }
+
+  async getInscriptionByAddress(address: string): Promise<IInscription[]> {
+    try {
+      const url =
+        this.network === testnet
+          ? `https://open-api-testnet.unisat.io/v1/indexer/address/${address}/inscription-data`
+          : `https://open-api-s1.unisat.io/v1/indexer/address/${address}/inscription-data`;
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${this.unisatApiKey}`,
+        },
+      };
+
+      let cursor = 0;
+      const inscriptionUtxos: IInscription[] = [];
+
+      while (1) {
+        const res = await axios.get(url, {
+          ...config,
+          params: {
+            cursor,
+          },
+        });
+
+        if (res.data.code === -1)
+          throw new BadRequestException('Invalid address');
+
+        inscriptionUtxos.push(
+          ...res.data.data.inscription.map((inscription) => {
+            return {
+              address: inscription.address,
+              inscriptionId: inscription.inscriptionId,
+              inscriptionNumber: inscription.inscriptionNumber,
+              contentType: inscription.contentType,
+            };
+          }),
+        );
+
+        cursor += res.data.data.inscription.length;
 
         if (cursor === res.data.data.total) break;
       }

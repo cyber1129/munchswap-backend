@@ -161,6 +161,10 @@ export class SwapOfferService {
       where: {
         uuid,
       },
+      relations: {
+        buyer: true,
+        seller: true,
+      },
     });
 
     if (!swapOffer)

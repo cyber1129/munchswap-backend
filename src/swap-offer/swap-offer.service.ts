@@ -823,8 +823,6 @@ export class SwapOfferService {
 
     if (!swapOffer) throw new BadRequestException('Can not find swap offer');
 
-    console.log(swapOffer);
-
     return {
       uuid: swapOffer.uuid,
       psbt: swapOffer.psbt,

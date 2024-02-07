@@ -147,7 +147,6 @@ export class SwapOfferController {
     );
   }
 
-  @ApiBearerAuth()
   @ApiOperation({ description: `Get Sending offers`, tags: ['Swap offer'] })
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer[]>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
@@ -172,7 +171,6 @@ export class SwapOfferController {
     );
   }
 
-  @ApiBearerAuth()
   @ApiOperation({ description: `Get history`, tags: ['Swap offer'] })
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer[]>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
@@ -181,7 +179,6 @@ export class SwapOfferController {
     return this.swapOfferService.getPushedOffers(pageOptionsDto);
   }
 
-  @ApiBearerAuth()
   @ApiOperation({
     description: `Get supported collect deals`,
     tags: ['Swap offer'],
@@ -193,7 +190,6 @@ export class SwapOfferController {
     return this.swapOfferService.getPushedOffersForSupportCollections();
   }
 
-  @ApiBearerAuth()
   @ApiOperation({ description: `Get swap offer details`, tags: ['Swap offer'] })
   @ApiResponse(ApiResponseHelper.success(SwapOffer, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))

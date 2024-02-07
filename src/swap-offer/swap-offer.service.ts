@@ -581,7 +581,8 @@ export class SwapOfferService {
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
-        expiredAt: swapOffer.expiredAt,
+        status: swapOffer.status,
+        pushedAt: swapOffer.updatedAt,
         buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
@@ -668,6 +669,8 @@ export class SwapOfferService {
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
+        status: swapOffer.status,
+        pushedAt: swapOffer.updatedAt,
         buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {

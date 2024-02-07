@@ -170,10 +170,7 @@ export class SwapOfferService {
     if (!swapOffer)
       throw new BadRequestException('Can not find the buy now offer');
 
-    if (swapOffer.buyer.id !== user.id)
-      throw new BadRequestException('You can not cancel the offer');
-
-    if (swapOffer.seller.id !== user.id)
+    if (swapOffer.buyer.id !== user.id || swapOffer.seller.id !== user.id)
       throw new BadRequestException('You can not cancel the offer');
 
     await this.swapOfferRepository.update(

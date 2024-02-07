@@ -831,7 +831,7 @@ export class SwapOfferService {
         (inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.id,
+              inscriptionId: inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -848,7 +848,7 @@ export class SwapOfferService {
         (inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.id,
+              inscriptionId: inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,

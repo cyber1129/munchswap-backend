@@ -831,6 +831,7 @@ export class SwapOfferService {
       buyer: swapOffer.buyer,
       seller: swapOffer.seller,
       expiredAt: swapOffer.expiredAt,
+      price: swapOffer.price,
       buyerSwapInscription: swapOffer.buyerSwapInscription.map(
         (inscription) => {
           return {

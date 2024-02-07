@@ -823,6 +823,8 @@ export class SwapOfferService {
 
     if (!swapOffer) throw new BadRequestException('Can not find swap offer');
 
+    console.log(swapOffer);
+
     return {
       uuid: swapOffer.uuid,
       psbt: swapOffer.psbt,
@@ -833,7 +835,7 @@ export class SwapOfferService {
         (inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscriptionId,
+              inscriptionId: inscription.inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -850,7 +852,7 @@ export class SwapOfferService {
         (inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscriptionId,
+              inscriptionId: inscription.inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,

@@ -585,7 +585,7 @@ export class SwapOfferService {
         buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscriptionId,
+              inscriptionId: inscription.inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -600,7 +600,7 @@ export class SwapOfferService {
         sellerInscripion: swapOffer.sellerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscriptionId,
+              inscriptionId: inscription.inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -671,7 +671,7 @@ export class SwapOfferService {
         buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscriptionId,
+              inscriptionId: inscription.inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -686,7 +686,7 @@ export class SwapOfferService {
         sellerInscripion: swapOffer.sellerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscriptionId,
+              inscriptionId: inscription.inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,

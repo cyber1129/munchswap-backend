@@ -298,13 +298,12 @@ export class InscriptionService {
   async getPaginatedInscriptions(
     collectionId: number,
     pageOptionsDto: PageOptionsDto,
-  ): Promise<PageDto<Inscription>> {
+  ): Promise<PageDto<string>> {
     const queryBuilder =
       this.inscriptionRepository.createQueryBuilder('inscription');
 
     queryBuilder
       .where(`inscription.collection_id=${collectionId}`)
-      .orderBy('buy_now_activity.price', 'ASC')
       .skip(
         pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
       )
@@ -313,9 +312,13 @@ export class InscriptionService {
     const itemCount = await queryBuilder.getCount();
     const { entities } = await queryBuilder.getRawAndEntities();
 
+    const inscriptionIds = entities.map(
+      (inscription) => inscription.inscriptionId,
+    );
+
     const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
 
-    return new PageDto(entities, pageMetaDto);
+    return new PageDto(inscriptionIds, pageMetaDto);
   }
 
   async getInscriptionOwner(

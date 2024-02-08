@@ -41,7 +41,7 @@ export class CollectionController {
   })
   @ApiResponse(ApiResponseHelper.success(CollectionInscriptions, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
-  @Get('/inscriptions/:collectionName')
+  @Get('/:collectionName')
   async getCollectionInfo(
     @Param('collectionName') collectionName: string,
     @Query() pageOptionsDto: PageOptionsDto,

@@ -58,15 +58,15 @@ export class CollectionService {
       where: {
         name: collectionName,
       },
-      select: [
-        'id',
-        'imgUrl',
-        'name',
-        'description',
-        'website',
-        'discord',
-        'twitter',
-      ],
+      select: {
+        id: true,
+        imgUrl: true,
+        name: true,
+        description: true,
+        website: true,
+        discord: true,
+        twitter: true,
+      },
     });
 
     if (!collection)
@@ -78,7 +78,7 @@ export class CollectionService {
     );
 
     collection['inscriptions'] = {
-      data: inscriptions,
+      data: inscriptions.data,
       meta: inscriptions.meta,
     };
 

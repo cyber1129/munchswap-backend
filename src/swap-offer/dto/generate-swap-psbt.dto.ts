@@ -70,6 +70,6 @@ export class GenerateSwapPsbtDto {
     maximum: 128,
     description: 'Expired time',
   })
-  @IsIn(['30m', '1h', '6h', '1d', '7d'])
+  @IsIn(['30m', '1h', '6h', '1d', '3d', '7d'])
   expiredIn: string;
 }

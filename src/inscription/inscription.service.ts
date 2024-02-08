@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Network } from 'bitcoinjs-lib';
-import { In } from 'typeorm';
+import { In, Not } from 'typeorm';
 import axios from 'axios';
 import { bitcoin, testnet } from 'bitcoinjs-lib/src/networks';
 
@@ -54,7 +54,7 @@ export class InscriptionService {
     inscriptionIds: string[],
   ): Promise<Inscription[]> {
     return this.inscriptionRepository.find({
-      where: { inscriptionId: In(inscriptionIds) },
+      where: { inscriptionId: In(inscriptionIds), collectionId: Not(1) },
       relations: { collection: true },
       select: {
         collection: {
@@ -62,6 +62,7 @@ export class InscriptionService {
           imgUrl: true,
           description: true,
         },
+        inscriptionId: true,
       },
     });
   }

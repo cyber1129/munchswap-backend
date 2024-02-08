@@ -1,5 +1,5 @@
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Brackets, In, LessThan } from 'typeorm';
+import { And, Brackets, In, LessThan, Not } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { testnet, bitcoin, Network } from 'bitcoinjs-lib/src/networks';
@@ -731,7 +731,7 @@ export class SwapOfferService {
           status: OfferStatus.PUSHED,
           sellerSwapInscription: {
             inscription: {
-              collectionId: LessThan(5),
+              collectionId: And(LessThan(5), Not(1)),
             },
           },
         },
@@ -739,7 +739,7 @@ export class SwapOfferService {
           status: OfferStatus.PUSHED,
           buyerSwapInscription: {
             inscription: {
-              collectionId: LessThan(5),
+              collectionId: And(LessThan(5), Not(1)),
             },
           },
         },
@@ -754,7 +754,7 @@ export class SwapOfferService {
         seller: true,
         buyer: true,
       },
-      take: 20,
+      take: 10,
       order: {
         updatedAt: 'DESC',
       },
@@ -763,10 +763,11 @@ export class SwapOfferService {
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
+        status: swapOffer.status,
         buyerInscripion: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscriptionId,
+              inscriptionId: inscription.inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -781,7 +782,7 @@ export class SwapOfferService {
         sellerInscripion: swapOffer.sellerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscriptionId,
+              inscriptionId: inscription.inscription.inscriptionId,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,

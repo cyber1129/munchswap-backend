@@ -69,7 +69,7 @@ export class SearchService {
             collectionInfo.inscriptionId === inscription.inscriptionId,
         );
 
-        return { ...inscription, collection };
+        return { ...inscription, collection: collection.collection };
       });
     } catch (error) {
       return {};

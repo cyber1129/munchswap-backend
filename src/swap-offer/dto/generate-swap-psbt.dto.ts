@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  ArrayMaxSize,
   ArrayMinSize,
   IsArray,
   IsEnum,
@@ -7,8 +8,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  MaxLength,
-  MinLength,
 } from 'class-validator';
 
 import { WalletTypes } from '@src/user/user.entity';
@@ -26,6 +25,7 @@ export class GenerateSwapPsbtDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMinSize(1)
+  @ArrayMaxSize(5)
   buyerInscriptionIds: string[];
 
   @ApiProperty({
@@ -40,6 +40,7 @@ export class GenerateSwapPsbtDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMinSize(1)
+  @ArrayMaxSize(5)
   sellerInscriptionIds: string[];
 
   @ApiProperty({

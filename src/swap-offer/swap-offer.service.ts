@@ -63,7 +63,7 @@ export class SwapOfferService {
         walletType,
         sellerInscriptionIds,
         buyerInscriptionIds,
-        price: price * 10 ** 8,
+        price: Math.floor(price * 10 ** 8),
       });
 
     if (address !== buyerAddress)

@@ -43,7 +43,7 @@ export class AuthService {
 
     await this.generateSignMessage(body.address);
 
-    if (this.network === 'mainnet') {
+    try {
       const validity = Verifier.verifySignature(
         body.address,
         message,
@@ -52,6 +52,8 @@ export class AuthService {
 
       if (validity === false)
         throw new BadRequestException('The signature is invalid');
+    } catch (error) {
+      throw new BadRequestException('The signature is invalid');
     }
 
     const user = await this.userService.findByAddress(body.address);

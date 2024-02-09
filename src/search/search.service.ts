@@ -5,7 +5,15 @@ import { InscriptionService } from '@src/inscription/inscription.service';
 import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
 
-export const AllowedContentTypes = ['image/svg+xml'];
+export const AllowedContentTypes = [
+  'image/svg+xml',
+  'image/apng',
+  'image/avif',
+  'image/gif',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+];
 
 @Injectable()
 export class SearchService {

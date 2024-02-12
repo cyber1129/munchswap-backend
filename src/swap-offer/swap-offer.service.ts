@@ -315,8 +315,8 @@ export class SwapOfferService {
       return {
         price: swapOffer.price,
         psbt: swapOffer.psbt,
-        buyer: swapOffer.buyer.address,
-        seller: swapOffer.seller.address,
+        buyer: swapOffer.buyer,
+        seller: swapOffer.seller,
         uuid: swapOffer.uuid,
         expiredAt: swapOffer.expiredAt,
         status: swapOffer.status,
@@ -402,8 +402,8 @@ export class SwapOfferService {
       return {
         price: swapOffer.price,
         psbt: swapOffer.psbt,
-        buyer: swapOffer.buyer.address,
-        seller: swapOffer.seller.address,
+        buyer: swapOffer.buyer,
+        seller: swapOffer.seller,
         uuid: swapOffer.uuid,
         expiredAt: swapOffer.expiredAt,
         status: swapOffer.status,
@@ -488,8 +488,8 @@ export class SwapOfferService {
       return {
         price: swapOffer.price,
         psbt: swapOffer.psbt,
-        buyer: swapOffer.buyer.address,
-        seller: swapOffer.seller.address,
+        buyer: swapOffer.buyer,
+        seller: swapOffer.seller,
         uuid: swapOffer.uuid,
         expiredAt: swapOffer.expiredAt,
         status: swapOffer.status,

@@ -23,6 +23,7 @@ import { Inscription } from '@src/inscription/inscription.entity';
 import { BuyerSwapInscription } from './buyer-swap-inscription.entity';
 import { SellerSwapInscription } from './seller-swap-inscription.entity';
 import axios from 'axios';
+import { GetOfferDto } from './dto/get-offer.dto';
 
 @Injectable()
 export class SwapOfferService {
@@ -269,35 +270,50 @@ export class SwapOfferService {
     }
   }
 
-  async getUserSendingOffers(
-    ownerAddress: string,
-    pageOptionsDto: PageOptionsDto,
-  ) {
+  async getUserSendingOffers(ownerAddress: string, getOfferDto: GetOfferDto) {
     const user = await this.userService.findByAddress(ownerAddress);
 
-    const swapOffers = await this.swapOfferRepository.find({
-      select: {
-        buyer: {
-          address: true,
+    const [swapOffers, itemCount] = await this.swapOfferRepository.findAndCount(
+      {
+        select: {
+          buyer: {
+            address: true,
+          },
+        },
+        where: [
+          {
+            buyer: { id: user.id },
+            status: OfferStatus.SIGNED,
+            buyerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            buyer: { id: user.id },
+            status: OfferStatus.SIGNED,
+            sellerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            buyer: { id: user.id },
+            status: OfferStatus.SIGNED,
+            seller: { address: getOfferDto.keyword },
+          },
+        ],
+        relations: {
+          buyerSwapInscription: { inscription: true },
+          sellerSwapInscription: { inscription: true },
+          buyer: true,
+          seller: true,
+        },
+        skip: getOfferDto.skip ?? (getOfferDto.page - 1) * getOfferDto.take,
+        take: getOfferDto.take,
+        order: {
+          updatedAt: 'DESC',
         },
       },
-      where: {
-        buyer: { id: user.id },
-        status: OfferStatus.SIGNED,
-      },
-      relations: {
-        buyerSwapInscription: { inscription: true },
-        sellerSwapInscription: { inscription: true },
-        buyer: true,
-        seller: true,
-      },
-      skip:
-        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
-      take: pageOptionsDto.take,
-      order: {
-        updatedAt: 'DESC',
-      },
-    });
+    );
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -328,46 +344,63 @@ export class SwapOfferService {
         offer.psbt = this.psbtService.convertHexedToBase64(offer.psbt);
       });
 
-    const itemCount = await this.swapOfferRepository
-      .createQueryBuilder('swap_offer')
-      .where(`buyer_id=${user.id}`)
-      .andWhere(`swap_offer.status='${OfferStatus.SIGNED}'`)
-      .getCount();
-
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip: getOfferDto.skip,
+        order: getOfferDto.order,
+        page: getOfferDto.page,
+        take: getOfferDto.take,
+      },
+    });
 
     return new PageDto(entities, pageMetaDto);
   }
 
-  async getUserGettingOffers(
-    ownerAddress: string,
-    pageOptionsDto: PageOptionsDto,
-  ) {
+  async getUserGettingOffers(ownerAddress: string, getOfferDto: GetOfferDto) {
     const user = await this.userService.findByAddress(ownerAddress);
 
-    const swapOffers = await this.swapOfferRepository.find({
-      select: {
-        buyer: {
-          address: true,
+    const [swapOffers, itemCount] = await this.swapOfferRepository.findAndCount(
+      {
+        select: {
+          buyer: {
+            address: true,
+          },
+        },
+        where: [
+          {
+            seller: { id: user.id },
+            status: OfferStatus.SIGNED,
+            buyerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            seller: { id: user.id },
+            status: OfferStatus.SIGNED,
+            sellerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            seller: { id: user.id },
+            status: OfferStatus.SIGNED,
+            buyer: { address: getOfferDto.keyword },
+          },
+        ],
+        relations: {
+          buyerSwapInscription: { inscription: true },
+          sellerSwapInscription: { inscription: true },
+          buyer: true,
+          seller: true,
+        },
+        skip: getOfferDto.skip ?? (getOfferDto.page - 1) * getOfferDto.take,
+        take: getOfferDto.take,
+        order: {
+          updatedAt: 'DESC',
         },
       },
-      where: {
-        seller: { id: user.id },
-        status: OfferStatus.SIGNED,
-      },
-      relations: {
-        buyerSwapInscription: { inscription: true },
-        sellerSwapInscription: { inscription: true },
-        buyer: true,
-        seller: true,
-      },
-      skip:
-        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
-      take: pageOptionsDto.take,
-      order: {
-        updatedAt: 'DESC',
-      },
-    });
+    );
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -398,13 +431,15 @@ export class SwapOfferService {
         offer.psbt = this.psbtService.convertHexedToBase64(offer.psbt);
       });
 
-    const itemCount = await this.swapOfferRepository
-      .createQueryBuilder('swap_offer')
-      .where(`seller_id=${user.id}`)
-      .andWhere(`swap_offer.status='${OfferStatus.SIGNED}'`)
-      .getCount();
-
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip: getOfferDto.skip,
+        order: getOfferDto.order,
+        page: getOfferDto.page,
+        take: getOfferDto.take,
+      },
+    });
 
     return new PageDto(entities, pageMetaDto);
   }

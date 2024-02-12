@@ -24,6 +24,7 @@ import { CancelSwapOfferDto } from './dto/cancel-swap-offer.dto';
 import { SwapOfferService } from './swap-offer.service';
 import { GeneratePbst, PushTxResult, SignPsbtResult } from './swap-offer.type';
 import { SwapOffer } from './swap-offer.entity';
+import { GetOfferDto } from './dto/get-offer.dto';
 
 @Controller('swap-offer')
 export class SwapOfferController {
@@ -123,11 +124,11 @@ export class SwapOfferController {
   @Get('/user-sending-offers')
   async getUserSendingOffers(
     @Request() req,
-    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() getOfferDto: GetOfferDto,
   ) {
     return this.swapOfferService.getUserSendingOffers(
       req.user.address,
-      pageOptionsDto,
+      getOfferDto,
     );
   }
 
@@ -139,11 +140,11 @@ export class SwapOfferController {
   @Get('/user-getting-offers')
   async getUserGettingOffers(
     @Request() req,
-    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() getOfferDto: GetOfferDto,
   ) {
     return this.swapOfferService.getUserGettingOffers(
       req.user.address,
-      pageOptionsDto,
+      getOfferDto,
     );
   }
 

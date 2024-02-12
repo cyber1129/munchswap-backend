@@ -10,11 +10,7 @@ import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
 import { BuyerSignPsbtDto } from './dto/buyer-sign-psbt.dto';
 import { SellerSignPsbtDto } from './dto/seller-sign-psbt.dto';
-import {
-  PageDto,
-  PageMetaDto,
-  PageOptionsDto,
-} from '@src/common/pagination/pagination.types';
+import { PageDto, PageMetaDto } from '@src/common/pagination/pagination.types';
 import { SwapOfferRepository } from './swap-offer.repository';
 import { OfferStatus, SwapOffer } from './swap-offer.entity';
 import { BuyerSwapInscriptionRepository } from './buyer-swap-inscription.repository';
@@ -444,29 +440,49 @@ export class SwapOfferService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async getSendingOffers(pageOptionsDto: PageOptionsDto) {
-    const swapOffers = await this.swapOfferRepository.find({
-      select: {
-        buyer: {
-          address: true,
+  async getSendingOffers(getOfferDto: GetOfferDto) {
+    const [swapOffers, itemCount] = await this.swapOfferRepository.findAndCount(
+      {
+        select: {
+          buyer: {
+            address: true,
+          },
+        },
+        where: [
+          {
+            status: OfferStatus.SIGNED,
+            buyerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            status: OfferStatus.SIGNED,
+            sellerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            status: OfferStatus.SIGNED,
+            buyer: { address: getOfferDto.keyword },
+          },
+          {
+            status: OfferStatus.SIGNED,
+            seller: { address: getOfferDto.keyword },
+          },
+        ],
+        relations: {
+          buyerSwapInscription: { inscription: true },
+          sellerSwapInscription: { inscription: true },
+          buyer: true,
+          seller: true,
+        },
+        skip: getOfferDto.skip ?? (getOfferDto.page - 1) * getOfferDto.take,
+        take: getOfferDto.take,
+        order: {
+          updatedAt: 'DESC',
         },
       },
-      where: {
-        status: OfferStatus.SIGNED,
-      },
-      relations: {
-        buyerSwapInscription: { inscription: true },
-        sellerSwapInscription: { inscription: true },
-        buyer: true,
-        seller: true,
-      },
-      skip:
-        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
-      take: pageOptionsDto.take,
-      order: {
-        updatedAt: 'DESC',
-      },
-    });
+    );
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -492,12 +508,15 @@ export class SwapOfferService {
       };
     });
 
-    const itemCount = await this.swapOfferRepository
-      .createQueryBuilder('swap_offer')
-      .andWhere(`swap_offer.status='${OfferStatus.SIGNED}'`)
-      .getCount();
-
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip: getOfferDto.skip,
+        order: getOfferDto.order,
+        page: getOfferDto.page,
+        take: getOfferDto.take,
+      },
+    });
 
     return new PageDto(entities, pageMetaDto);
   }
@@ -566,52 +585,84 @@ export class SwapOfferService {
     return res.data.status.confirmed;
   }
 
-  async getUserPushedOffers(
-    userAddress: string,
-    pageOptionsDto: PageOptionsDto,
-  ) {
+  async getUserPushedOffers(userAddress: string, getOfferDto: GetOfferDto) {
     const user = await this.userService.findByAddress(userAddress);
 
-    const swapOffers = await this.swapOfferRepository.find({
-      select: {
-        seller: {
-          address: true,
-        },
-        buyer: {
-          address: true,
-        },
-      },
-      where: [
-        {
+    const [swapOffers, itemCount] = await this.swapOfferRepository.findAndCount(
+      {
+        select: {
           seller: {
-            id: user.id,
+            address: true,
           },
-          status: OfferStatus.PUSHED,
-        },
-        {
           buyer: {
-            id: user.id,
+            address: true,
           },
-          status: OfferStatus.PUSHED,
         },
-      ],
-      relations: {
-        buyerSwapInscription: {
-          inscription: { collection: true },
+        where: [
+          {
+            seller: {
+              id: user.id,
+            },
+            status: OfferStatus.PUSHED,
+            buyerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            buyer: {
+              id: user.id,
+            },
+            status: OfferStatus.PUSHED,
+            buyerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            seller: { id: user.id },
+            status: OfferStatus.PUSHED,
+            sellerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            buyer: { id: user.id },
+            status: OfferStatus.PUSHED,
+            sellerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            seller: {
+              id: user.id,
+            },
+            status: OfferStatus.PUSHED,
+            buyer: { address: getOfferDto.keyword },
+          },
+          {
+            buyer: {
+              id: user.id,
+            },
+            status: OfferStatus.PUSHED,
+            seller: { address: getOfferDto.keyword },
+          },
+        ],
+        relations: {
+          buyerSwapInscription: {
+            inscription: { collection: true },
+          },
+          sellerSwapInscription: {
+            inscription: { collection: true },
+          },
+          seller: true,
+          buyer: true,
         },
-        sellerSwapInscription: {
-          inscription: { collection: true },
+        skip: getOfferDto.skip ?? (getOfferDto.page - 1) * getOfferDto.take,
+        take: getOfferDto.take,
+        order: {
+          updatedAt: 'DESC',
         },
-        seller: true,
-        buyer: true,
       },
-      skip:
-        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
-      take: pageOptionsDto.take,
-      order: {
-        updatedAt: 'DESC',
-      },
-    });
+    );
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -656,53 +707,69 @@ export class SwapOfferService {
       };
     });
 
-    const itemCount = await this.swapOfferRepository
-      .createQueryBuilder('swap_offer')
-      .andWhere(
-        new Brackets((subQuery) =>
-          subQuery
-            .where(`swap_offer.buyer_id=${user.id}`)
-            .orWhere(`swap_offer.seller_id=${user.id}`),
-        ),
-      )
-      .andWhere(`swap_offer.status='${OfferStatus.PUSHED}'`)
-      .getCount();
-
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip: getOfferDto.skip,
+        order: getOfferDto.order,
+        page: getOfferDto.page,
+        take: getOfferDto.take,
+      },
+    });
 
     return new PageDto(entities, pageMetaDto);
   }
 
-  async getPushedOffers(pageOptionsDto: PageOptionsDto) {
-    const swapOffers = await this.swapOfferRepository.find({
-      select: {
-        seller: {
-          address: true,
+  async getPushedOffers(getOfferDto: GetOfferDto) {
+    const [swapOffers, itemCount] = await this.swapOfferRepository.findAndCount(
+      {
+        select: {
+          seller: {
+            address: true,
+          },
+          buyer: {
+            address: true,
+          },
         },
-        buyer: {
-          address: true,
+        where: [
+          {
+            status: OfferStatus.PUSHED,
+            buyerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            status: OfferStatus.PUSHED,
+            sellerSwapInscription: {
+              inscription: { inscriptionId: getOfferDto.keyword },
+            },
+          },
+          {
+            status: OfferStatus.PUSHED,
+            buyer: { address: getOfferDto.keyword },
+          },
+          {
+            status: OfferStatus.PUSHED,
+            seller: { address: getOfferDto.keyword },
+          },
+        ],
+        relations: {
+          buyerSwapInscription: {
+            inscription: { collection: true },
+          },
+          sellerSwapInscription: {
+            inscription: { collection: true },
+          },
+          seller: true,
+          buyer: true,
+        },
+        skip: getOfferDto.skip ?? (getOfferDto.page - 1) * getOfferDto.take,
+        take: getOfferDto.take,
+        order: {
+          updatedAt: 'DESC',
         },
       },
-      where: {
-        status: OfferStatus.PUSHED,
-      },
-      relations: {
-        buyerSwapInscription: {
-          inscription: { collection: true },
-        },
-        sellerSwapInscription: {
-          inscription: { collection: true },
-        },
-        seller: true,
-        buyer: true,
-      },
-      skip:
-        pageOptionsDto.skip ?? (pageOptionsDto.page - 1) * pageOptionsDto.take,
-      take: pageOptionsDto.take,
-      order: {
-        updatedAt: 'DESC',
-      },
-    });
+    );
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -747,12 +814,15 @@ export class SwapOfferService {
       };
     });
 
-    const itemCount = await this.swapOfferRepository
-      .createQueryBuilder('swap_offer')
-      .andWhere(`swap_offer.status='${OfferStatus.PUSHED}'`)
-      .getCount();
-
-    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip: getOfferDto.skip,
+        order: getOfferDto.order,
+        page: getOfferDto.page,
+        take: getOfferDto.take,
+      },
+    });
 
     return new PageDto(entities, pageMetaDto);
   }

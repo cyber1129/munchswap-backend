@@ -152,8 +152,8 @@ export class SwapOfferController {
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer[]>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/sending-offers')
-  async getSendingOffers(@Query() pageOptionsDto: PageOptionsDto) {
-    return this.swapOfferService.getSendingOffers(pageOptionsDto);
+  async getSendingOffers(@Query() getOfferDto: GetOfferDto) {
+    return this.swapOfferService.getSendingOffers(getOfferDto);
   }
 
   @ApiBearerAuth()
@@ -162,13 +162,10 @@ export class SwapOfferController {
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/user-history')
-  async getUserPushedOffers(
-    @Request() req,
-    @Query() pageOptionsDto: PageOptionsDto,
-  ) {
+  async getUserPushedOffers(@Request() req, @Query() getOfferDto: GetOfferDto) {
     return this.swapOfferService.getUserPushedOffers(
       req.user.address,
-      pageOptionsDto,
+      getOfferDto,
     );
   }
 
@@ -176,8 +173,8 @@ export class SwapOfferController {
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer[]>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/history')
-  async getPushedOffers(@Query() pageOptionsDto: PageOptionsDto) {
-    return this.swapOfferService.getPushedOffers(pageOptionsDto);
+  async getPushedOffers(@Query() getOfferDto: GetOfferDto) {
+    return this.swapOfferService.getPushedOffers(getOfferDto);
   }
 
   @ApiOperation({

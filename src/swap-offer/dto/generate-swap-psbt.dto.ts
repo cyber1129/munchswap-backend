@@ -25,7 +25,7 @@ export class GenerateSwapPsbtDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMinSize(1)
-  @ArrayMaxSize(5)
+  @ArrayMaxSize(4)
   buyerInscriptionIds: string[];
 
   @ApiProperty({
@@ -40,7 +40,7 @@ export class GenerateSwapPsbtDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMinSize(1)
-  @ArrayMaxSize(5)
+  @ArrayMaxSize(4)
   sellerInscriptionIds: string[];
 
   @ApiProperty({

@@ -20,6 +20,7 @@ import { BuyerSwapInscription } from './buyer-swap-inscription.entity';
 import { SellerSwapInscription } from './seller-swap-inscription.entity';
 import axios from 'axios';
 import { GetOfferDto } from './dto/get-offer.dto';
+import { GetUserHistoryDto } from './dto/get-user-history.dto';
 
 @Injectable()
 export class SwapOfferService {
@@ -177,8 +178,6 @@ export class SwapOfferService {
       { status: OfferStatus.CANCELED },
     );
 
-    await this.swapOfferRepository.softDelete({ uuid });
-
     return true;
   }
 
@@ -255,10 +254,6 @@ export class SwapOfferService {
         },
         { status: OfferStatus.FAILED },
       );
-
-      await this.swapOfferRepository.softDelete({
-        id: swapOffer.id,
-      });
 
       throw new BadRequestException(
         'Transaction failed to push, buyer should create a psbt again',
@@ -537,16 +532,6 @@ export class SwapOfferService {
         status: OfferStatus.EXPIRED,
       },
     );
-
-    await this.swapOfferRepository.softDelete({
-      expiredAt: LessThan(new Date()),
-      status: In([
-        OfferStatus.CREATED,
-        OfferStatus.SIGNED,
-        OfferStatus.ACCEPTED,
-        OfferStatus.FAILED,
-      ]),
-    });
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -585,8 +570,15 @@ export class SwapOfferService {
     return res.data.status.confirmed;
   }
 
-  async getUserPushedOffers(userAddress: string, getOfferDto: GetOfferDto) {
+  async getUserPushedOffers(
+    userAddress: string,
+    getOfferDto: GetUserHistoryDto,
+  ) {
     const user = await this.userService.findByAddress(userAddress);
+
+    const status = getOfferDto.status
+      ? [getOfferDto.status]
+      : ['canceled', 'pending', 'pushed', 'expired', 'failed'];
 
     const [swapOffers, itemCount] = await this.swapOfferRepository.findAndCount(
       {
@@ -603,7 +595,7 @@ export class SwapOfferService {
             seller: {
               id: user.id,
             },
-            status: OfferStatus.PUSHED,
+            status: In(status),
             buyerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
@@ -612,21 +604,21 @@ export class SwapOfferService {
             buyer: {
               id: user.id,
             },
-            status: OfferStatus.PUSHED,
+            status: In(status),
             buyerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
           },
           {
             seller: { id: user.id },
-            status: OfferStatus.PUSHED,
+            status: In(status),
             sellerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
           },
           {
             buyer: { id: user.id },
-            status: OfferStatus.PUSHED,
+            status: In(status),
             sellerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
@@ -635,14 +627,14 @@ export class SwapOfferService {
             seller: {
               id: user.id,
             },
-            status: OfferStatus.PUSHED,
+            status: In(status),
             buyer: { address: getOfferDto.keyword },
           },
           {
             buyer: {
               id: user.id,
             },
-            status: OfferStatus.PUSHED,
+            status: In(status),
             seller: { address: getOfferDto.keyword },
           },
         ],

@@ -25,6 +25,7 @@ import { SwapOfferService } from './swap-offer.service';
 import { GeneratePbst, PushTxResult, SignPsbtResult } from './swap-offer.type';
 import { SwapOffer } from './swap-offer.entity';
 import { GetOfferDto } from './dto/get-offer.dto';
+import { GetUserHistoryDto } from './dto/get-user-history.dto';
 
 @Controller('swap-offer')
 export class SwapOfferController {
@@ -162,7 +163,10 @@ export class SwapOfferController {
   @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/user-history')
-  async getUserPushedOffers(@Request() req, @Query() getOfferDto: GetOfferDto) {
+  async getUserPushedOffers(
+    @Request() req,
+    @Query() getOfferDto: GetUserHistoryDto,
+  ) {
     return this.swapOfferService.getUserPushedOffers(
       req.user.address,
       getOfferDto,

@@ -264,12 +264,11 @@ export class SwapOfferService {
   async getUserSendingOffers(ownerAddress: string, getOfferDto: GetOfferDto) {
     const user = await this.userService.findByAddress(ownerAddress);
 
-    const [swapOfferIds, itemCount] = await this.swapOfferRepository.findAndCount(
-      {
+    const [swapOfferIds, itemCount] =
+      await this.swapOfferRepository.findAndCount({
         select: {
-          buyer: {
-            address: true,
-          },
+          id: true,
+          updatedAt: true,
         },
         where: [
           {
@@ -303,29 +302,25 @@ export class SwapOfferService {
         order: {
           updatedAt: 'DESC',
         },
-      },
-    );
+      });
 
-    const swapOffers = await this.swapOfferRepository.find(
-      {
-        select: {
-          buyer: {
-            address: true,
-          },
-        },
-        where: {
-          id: In( swapOfferIds.map(inscription => inscription.id))
-        },
-        relations: {
-          buyerSwapInscription: { inscription: true },
-          sellerSwapInscription: { inscription: true },
-          buyer: true,
-          seller: true,
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        buyer: {
+          address: true,
         },
       },
-    );
+      where: {
+        id: In(swapOfferIds.map((inscription) => inscription.id)),
+      },
+      relations: {
+        buyerSwapInscription: { inscription: true },
+        sellerSwapInscription: { inscription: true },
+        buyer: true,
+        seller: true,
+      },
+    });
 
-    
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
@@ -371,12 +366,11 @@ export class SwapOfferService {
   async getUserGettingOffers(ownerAddress: string, getOfferDto: GetOfferDto) {
     const user = await this.userService.findByAddress(ownerAddress);
 
-    const [swapOfferIds, itemCount] = await this.swapOfferRepository.findAndCount(
-      {
+    const [swapOfferIds, itemCount] =
+      await this.swapOfferRepository.findAndCount({
         select: {
-          buyer: {
-            address: true,
-          },
+          id: true,
+          updatedAt: true,
         },
         where: [
           {
@@ -410,28 +404,24 @@ export class SwapOfferService {
         order: {
           updatedAt: 'DESC',
         },
-      },
-    );
+      });
 
-    const swapOffers = await this.swapOfferRepository.find(
-      {
-        select: {
-          buyer: {
-            address: true,
-          },
-        },
-        where: {
-          id: In(swapOfferIds.map(inscription => inscription.id))
-        },
-        relations: {
-          buyerSwapInscription: { inscription: true },
-          sellerSwapInscription: { inscription: true },
-          buyer: true,
-          seller: true,
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        buyer: {
+          address: true,
         },
       },
-    );
-
+      where: {
+        id: In(swapOfferIds.map((inscription) => inscription.id)),
+      },
+      relations: {
+        buyerSwapInscription: { inscription: true },
+        sellerSwapInscription: { inscription: true },
+        buyer: true,
+        seller: true,
+      },
+    });
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -476,10 +466,11 @@ export class SwapOfferService {
   }
 
   async getSendingOffers(getOfferDto: GetOfferDto) {
-    const [swapOfferIds, itemCount] = await this.swapOfferRepository.findAndCount(
-      {
+    const [swapOfferIds, itemCount] =
+      await this.swapOfferRepository.findAndCount({
         select: {
           id: true,
+          updatedAt: true,
         },
         where: [
           {
@@ -514,8 +505,7 @@ export class SwapOfferService {
         order: {
           updatedAt: 'DESC',
         },
-      },
-    );
+      });
 
     const swapOffers = await this.swapOfferRepository.find({
       select: {
@@ -524,7 +514,7 @@ export class SwapOfferService {
         },
       },
       where: {
-        id: In(swapOfferIds.map(inscription => inscription.id))
+        id: In(swapOfferIds.map((inscription) => inscription.id)),
       },
       relations: {
         buyerSwapInscription: { inscription: true },
@@ -538,7 +528,6 @@ export class SwapOfferService {
         updatedAt: 'DESC',
       },
     });
-
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -641,10 +630,11 @@ export class SwapOfferService {
       ? [getOfferDto.status]
       : ['canceled', 'pending', 'pushed', 'expired', 'failed'];
 
-    const [swapOfferIds, itemCount] = await this.swapOfferRepository.findAndCount(
-      {
+    const [swapOfferIds, itemCount] =
+      await this.swapOfferRepository.findAndCount({
         select: {
           id: true,
+          updatedAt: true,
         },
         where: [
           {
@@ -709,34 +699,31 @@ export class SwapOfferService {
         order: {
           updatedAt: 'DESC',
         },
-      },
-    );
+      });
 
-    const swapOffers = await this.swapOfferRepository.find(
-      {
-        select: {
-          seller: {
-            address: true,
-          },
-          buyer: {
-            address: true,
-          },
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        seller: {
+          address: true,
         },
-        where: {
-          id: In(swapOfferIds.map(inscription => inscription.id))
-        },
-        relations: {
-          buyerSwapInscription: {
-            inscription: { collection: true },
-          },
-          sellerSwapInscription: {
-            inscription: { collection: true },
-          },
-          seller: true,
-          buyer: true,
+        buyer: {
+          address: true,
         },
       },
-    );
+      where: {
+        id: In(swapOfferIds.map((inscription) => inscription.id)),
+      },
+      relations: {
+        buyerSwapInscription: {
+          inscription: { collection: true },
+        },
+        sellerSwapInscription: {
+          inscription: { collection: true },
+        },
+        seller: true,
+        buyer: true,
+      },
+    });
 
     const entities = swapOffers.map((swapOffer) => {
       return {
@@ -795,10 +782,11 @@ export class SwapOfferService {
   }
 
   async getPushedOffers(getOfferDto: GetOfferDto) {
-    const [swapOfferIds, itemCount] = await this.swapOfferRepository.findAndCount(
-      {
+    const [swapOfferIds, itemCount] =
+      await this.swapOfferRepository.findAndCount({
         select: {
-          id: true
+          id: true,
+          updatedAt: true,
         },
         where: [
           {
@@ -837,34 +825,31 @@ export class SwapOfferService {
         order: {
           updatedAt: 'DESC',
         },
-      },
-    );
+      });
 
-    const swapOffers = await this.swapOfferRepository.find(
-      {
-        select: {
-          seller: {
-            address: true,
-          },
-          buyer: {
-            address: true,
-          },
+    const swapOffers = await this.swapOfferRepository.find({
+      select: {
+        seller: {
+          address: true,
         },
-        where: {
-          id: In(swapOfferIds.map(inscription => inscription.id))
-        },
-        relations: {
-          buyerSwapInscription: {
-            inscription: { collection: true },
-          },
-          sellerSwapInscription: {
-            inscription: { collection: true },
-          },
-          seller: true,
-          buyer: true,
+        buyer: {
+          address: true,
         },
       },
-    );
+      where: {
+        id: In(swapOfferIds.map((inscription) => inscription.id)),
+      },
+      relations: {
+        buyerSwapInscription: {
+          inscription: { collection: true },
+        },
+        sellerSwapInscription: {
+          inscription: { collection: true },
+        },
+        seller: true,
+        buyer: true,
+      },
+    });
 
     const entities = swapOffers.map((swapOffer) => {
       return {

@@ -5,12 +5,14 @@ import { PageOptionsDto } from '@src/common/pagination/pagination.types';
 import { CollectionRepository } from './colletion.repository';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { Collection } from './collection.entity';
+import { PsbtService } from '@src/psbt/psbt.service';
 
 @Injectable()
 export class CollectionService {
   constructor(
     private collectionRepository: CollectionRepository,
     private inscriptionService: InscriptionService,
+    private psbtService: PsbtService,
   ) {
     this.addTempCollection();
   }
@@ -77,8 +79,14 @@ export class CollectionService {
       pageOptionsDto,
     );
 
+    const inscriptionDatas = await Promise.all(
+      inscriptions.data.map((inscriptionId) =>
+        this.psbtService.getInscriptionWithUtxo(inscriptionId),
+      ),
+    );
+
     collection['inscriptions'] = {
-      data: inscriptions.data,
+      data: inscriptionDatas,
       meta: inscriptions.meta,
     };
 

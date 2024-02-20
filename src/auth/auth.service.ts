@@ -13,6 +13,7 @@ import { UserService } from '@src/user/user.service';
 import { AccessTokenInterface } from './auth.type';
 import { LoginUserDto } from './dto/login-user.dto';
 import { SignMessageRepository } from './sign-message.repository';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +24,10 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly signMessageRepository: SignMessageRepository,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.network = this.configService.get('psbtConfig.network');
+  }
 
   async login(user: Partial<User>) {
     const accessToken = await this.createAccessToken(user);

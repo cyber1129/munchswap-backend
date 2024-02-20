@@ -320,7 +320,7 @@ export class PsbtService {
       const url =
         this.network === testnet
           ? `https://open-api-testnet.unisat.io/v1/indexer/inscription/info/${inscriptionId}`
-          : `https://open-api-s1.unisat.io/v1/indexer/inscription/info/${inscriptionId}`;
+          : `https://open-api.unisat.io/v1/indexer/inscription/info/${inscriptionId}`;
 
       const config = {
         headers: {
@@ -380,7 +380,7 @@ export class PsbtService {
     const url =
       this.network === testnet
         ? `https://open-api-testnet.unisat.io/v1/indexer/address/${address}/utxo-data`
-        : `https://open-api-s1.unisat.io/v1/indexer/address/${address}/utxo-data`;
+        : `https://open-api.unisat.io/v1/indexer/address/${address}/utxo-data`;
 
     const config = {
       headers: {
@@ -420,7 +420,7 @@ export class PsbtService {
       const url =
         this.network === testnet
           ? `https://open-api-testnet.unisat.io/v1/indexer/address/${address}/inscription-utxo-data`
-          : `https://open-api-s1.unisat.io/v1/indexer/address/${address}/inscription-utxo-data`;
+          : `https://open-api.unisat.io/v1/indexer/address/${address}/inscription-utxo-data`;
 
       const config = {
         headers: {
@@ -471,7 +471,7 @@ export class PsbtService {
       const url =
         this.network === testnet
           ? `https://open-api-testnet.unisat.io/v1/indexer/address/${address}/inscription-data`
-          : `https://open-api-s1.unisat.io/v1/indexer/address/${address}/inscription-data`;
+          : `https://open-api.unisat.io/v1/indexer/address/${address}/inscription-data`;
 
       const config = {
         headers: {

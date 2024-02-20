@@ -1030,11 +1030,15 @@ export class SwapOfferService {
       expiredAt: swapOffer.expiredAt,
       price: swapOffer.price,
       status: swapOffer.status,
-      buyerSwapInscription: swapOffer.buyerSwapInscription.map(
-        (inscription) => {
+      buyerSwapInscription: await Promise.all(
+        swapOffer.buyerSwapInscription.map(async (inscription) => {
+          const inscriptionInfo = await this.psbtService.getInscriptionWithUtxo(
+            inscription.inscription.inscriptionId,
+          );
+
           return {
             inscription: {
-              inscriptionId: inscription.inscription.inscriptionId,
+              ...inscriptionInfo,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -1045,13 +1049,17 @@ export class SwapOfferService {
               },
             },
           };
-        },
+        }),
       ),
-      sellerSwapInscription: swapOffer.sellerSwapInscription.map(
-        (inscription) => {
+      sellerSwapInscription: await Promise.all(
+        swapOffer.sellerSwapInscription.map(async (inscription) => {
+          const inscriptionInfo = await this.psbtService.getInscriptionWithUtxo(
+            inscription.inscription.inscriptionId,
+          );
+
           return {
             inscription: {
-              inscriptionId: inscription.inscription.inscriptionId,
+              ...inscriptionInfo,
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -1062,7 +1070,7 @@ export class SwapOfferService {
               },
             },
           };
-        },
+        }),
       ),
     };
   }

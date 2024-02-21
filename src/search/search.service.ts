@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { validate, getAddressInfo } from 'bitcoin-address-validation';
 
 import { CollectionService } from '@src/collection/collection.service';
 import { InscriptionService } from '@src/inscription/inscription.service';
 import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
+import { ConfigService } from '@nestjs/config';
 
 export const AllowedContentTypes = [
   'image/svg+xml',
@@ -17,21 +19,38 @@ export const AllowedContentTypes = [
 
 @Injectable()
 export class SearchService {
+  private network;
+
   constructor(
     private readonly inscriptionService: InscriptionService,
     private readonly collectionService: CollectionService,
     private readonly userService: UserService,
     private readonly psbtService: PsbtService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.network = this.configService.get('psbtConfig.network');
+  }
 
   async search(keyWord: string) {
-    const [inscription, collection, address] = await Promise.all([
-      this.searchInscription(keyWord),
-      this.searchCollection(keyWord),
-      this.searchByAddress(keyWord),
-    ]);
+    const isAddress = validate(keyWord, this.network);
 
-    return { inscription, collection, address };
+    if (isAddress) {
+      const [inscription, collection, address] = await Promise.all([
+        {},
+        this.searchCollection(keyWord),
+        [{ address: keyWord }],
+      ]);
+
+      return { inscription, collection, address };
+    } else {
+      const [inscription, collection, address] = await Promise.all([
+        keyWord.length === 66 ? this.searchInscription(keyWord) : [],
+        this.searchCollection(keyWord),
+        {},
+      ]);
+
+      return { inscription, collection, address };
+    }
   }
 
   async searchCollection(keyword: string) {

@@ -339,6 +339,7 @@ export class SwapOfferService {
       return {
         price: swapOffer.price,
         psbt: swapOffer.psbt,
+        txId: swapOffer.txId,
         buyer: swapOffer.buyer,
         seller: swapOffer.seller,
         uuid: swapOffer.uuid,
@@ -451,6 +452,7 @@ export class SwapOfferService {
       return {
         price: swapOffer.price,
         psbt: swapOffer.psbt,
+        txId: swapOffer.txId,
         buyer: swapOffer.buyer,
         seller: swapOffer.seller,
         uuid: swapOffer.uuid,
@@ -567,6 +569,7 @@ export class SwapOfferService {
       return {
         price: swapOffer.price,
         psbt: swapOffer.psbt,
+        txId: swapOffer.txId,
         buyer: swapOffer.buyer,
         seller: swapOffer.seller,
         uuid: swapOffer.uuid,
@@ -773,6 +776,7 @@ export class SwapOfferService {
       return {
         uuid: swapOffer.uuid,
         price: swapOffer.price,
+        txId: swapOffer.txId,
         status: swapOffer.status,
         pushedAt: swapOffer.updatedAt,
         buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
@@ -913,12 +917,13 @@ export class SwapOfferService {
       return {
         uuid: swapOffer.uuid,
         price: swapOffer.price,
+        txId: swapOffer.txId,
         status: swapOffer.status,
         pushedAt: swapOffer.updatedAt,
         buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              ...batchInscriptionInfo[ inscription.inscription.inscriptionId],
+              ...batchInscriptionInfo[inscription.inscription.inscriptionId],
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -1027,6 +1032,7 @@ export class SwapOfferService {
       return {
         uuid: swapOffer.uuid,
         price: swapOffer.price,
+        txId: swapOffer.txId,
         status: swapOffer.status,
         pushedAt: swapOffer.updatedAt,
         buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
@@ -1103,6 +1109,7 @@ export class SwapOfferService {
     return {
       uuid: swapOffer.uuid,
       psbt: swapOffer.psbt,
+      txId: swapOffer.txId,
       buyer: swapOffer.buyer,
       seller: swapOffer.seller,
       expiredAt: swapOffer.expiredAt,

@@ -321,6 +321,20 @@ export class SwapOfferService {
       },
     });
 
+    const inscriptionIds: string[] = [];
+
+    swapOffers.forEach((swapOffer) => {
+      swapOffer.buyerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+      swapOffer.sellerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+    });
+
+    const batchInscriptionInfo =
+      await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
+
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
@@ -330,17 +344,13 @@ export class SwapOfferService {
         uuid: swapOffer.uuid,
         expiredAt: swapOffer.expiredAt,
         status: swapOffer.status,
-        buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
-          return {
-            inscriptionId: inscription.inscription.inscriptionId,
-          };
-        }),
+        buyerInscription: swapOffer.buyerSwapInscription.map(
+          (inscription) =>
+            batchInscriptionInfo[inscription.inscription.inscriptionId],
+        ),
         sellerInscription: swapOffer.sellerSwapInscription.map(
-          (inscription) => {
-            return {
-              inscriptionId: inscription.inscription.inscriptionId,
-            };
-          },
+          (inscription) =>
+            batchInscriptionInfo[inscription.inscription.inscriptionId],
         ),
       };
     });
@@ -423,6 +433,20 @@ export class SwapOfferService {
       },
     });
 
+    const inscriptionIds: string[] = [];
+
+    swapOffers.forEach((swapOffer) => {
+      swapOffer.buyerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+      swapOffer.sellerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+    });
+
+    const batchInscriptionInfo =
+      await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
+
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
@@ -432,17 +456,13 @@ export class SwapOfferService {
         uuid: swapOffer.uuid,
         expiredAt: swapOffer.expiredAt,
         status: swapOffer.status,
-        buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
-          return {
-            inscriptionId: inscription.inscription.inscriptionId,
-          };
-        }),
+        buyerInscription: swapOffer.buyerSwapInscription.map(
+          (inscription) =>
+            batchInscriptionInfo[inscription.inscription.inscriptionId],
+        ),
         sellerInscription: swapOffer.sellerSwapInscription.map(
-          (inscription) => {
-            return {
-              inscriptionId: inscription.inscription.inscriptionId,
-            };
-          },
+          (inscription) =>
+            batchInscriptionInfo[inscription.inscription.inscriptionId],
         ),
       };
     });
@@ -529,6 +549,20 @@ export class SwapOfferService {
       },
     });
 
+    const inscriptionIds: string[] = [];
+
+    swapOffers.forEach((swapOffer) => {
+      swapOffer.buyerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+      swapOffer.sellerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+    });
+
+    const batchInscriptionInfo =
+      await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
+
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
@@ -538,17 +572,13 @@ export class SwapOfferService {
         uuid: swapOffer.uuid,
         expiredAt: swapOffer.expiredAt,
         status: swapOffer.status,
-        buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
-          return {
-            inscriptionId: inscription.inscription.inscriptionId,
-          };
-        }),
+        buyerInscription: swapOffer.buyerSwapInscription.map(
+          (inscription) =>
+            batchInscriptionInfo[inscription.inscription.inscriptionId],
+        ),
         sellerInscription: swapOffer.sellerSwapInscription.map(
-          (inscription) => {
-            return {
-              inscriptionId: inscription.inscription.inscriptionId,
-            };
-          },
+          (inscription) =>
+            batchInscriptionInfo[inscription.inscription.inscriptionId],
         ),
       };
     });
@@ -725,6 +755,20 @@ export class SwapOfferService {
       },
     });
 
+    const inscriptionIds: string[] = [];
+
+    swapOffers.forEach((swapOffer) => {
+      swapOffer.buyerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+      swapOffer.sellerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+    });
+
+    const batchInscriptionInfo =
+      await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
+
     const entities = swapOffers.map((swapOffer) => {
       return {
         uuid: swapOffer.uuid,
@@ -734,7 +778,7 @@ export class SwapOfferService {
         buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscription.inscriptionId,
+              ...batchInscriptionInfo[inscription.inscription.inscriptionId],
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -750,7 +794,7 @@ export class SwapOfferService {
           (inscription) => {
             return {
               inscription: {
-                inscriptionId: inscription.inscription.inscriptionId,
+                ...batchInscriptionInfo[inscription.inscription.inscriptionId],
                 collection: {
                   name: inscription.inscription.collection.name,
                   imgUrl: inscription.inscription.collection.imgUrl,
@@ -851,6 +895,20 @@ export class SwapOfferService {
       },
     });
 
+    const inscriptionIds: string[] = [];
+
+    swapOffers.forEach((swapOffer) => {
+      swapOffer.buyerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+      swapOffer.sellerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+    });
+
+    const batchInscriptionInfo =
+      await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
+
     const entities = swapOffers.map((swapOffer) => {
       return {
         uuid: swapOffer.uuid,
@@ -860,7 +918,7 @@ export class SwapOfferService {
         buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
-              inscriptionId: inscription.inscription.inscriptionId,
+              ...batchInscriptionInfo[ inscription.inscription.inscriptionId],
               collection: {
                 name: inscription.inscription.collection.name,
                 imgUrl: inscription.inscription.collection.imgUrl,
@@ -876,7 +934,7 @@ export class SwapOfferService {
           (inscription) => {
             return {
               inscription: {
-                inscriptionId: inscription.inscription.inscriptionId,
+                ...batchInscriptionInfo[inscription.inscription.inscriptionId],
                 collection: {
                   name: inscription.inscription.collection.name,
                   imgUrl: inscription.inscription.collection.imgUrl,

@@ -526,36 +526,42 @@ export class PsbtService {
   async getBatchInscriptionInfoBIS(
     inscriptions: string[],
   ): Promise<BatchInscriptionInfo> {
-    if (inscriptions.length === 0) return {};
+    try {
+      if (inscriptions.length === 0) return {};
 
-    const url =
-      this.network === testnet
-        ? `https://testnet.api.bestinslot.xyz/v3/inscription/batch_info`
-        : `https://api.bestinslot.xyz/v3/inscription/batch_info`;
+      const url =
+        this.network === testnet
+          ? `https://testnet.api.bestinslot.xyz/v3/inscription/batch_info`
+          : `https://api.bestinslot.xyz/v3/inscription/batch_info`;
 
-    const res = await axios.post(
-      url,
-      {
-        queries: inscriptions,
-      },
-      {
-        headers: {
-          'x-api-key': this.bisApiKey,
+      const res = await axios.post(
+        url,
+        {
+          queries: inscriptions,
         },
-      },
-    );
+        {
+          headers: {
+            'x-api-key': this.bisApiKey,
+          },
+        },
+      );
 
-    const batchInscriptionInfo: BatchInscriptionInfo = {};
+      const batchInscriptionInfo: BatchInscriptionInfo = {};
 
-    res.data.data.forEach((inscriptionInfo: any) => {
-      batchInscriptionInfo[inscriptionInfo.query as string] = {
-        contentType: inscriptionInfo.result.mime_type,
-        address: inscriptionInfo.result.wallet,
-        inscriptionId: inscriptionInfo.result.inscription_id,
-        inscriptionNumber: inscriptionInfo.result.inscription_number,
-      };
-    });
+      res.data.data.forEach((inscriptionInfo: any) => {
+        batchInscriptionInfo[inscriptionInfo.query as string] = {
+          contentType: inscriptionInfo.result.mime_type,
+          address: inscriptionInfo.result.wallet,
+          inscriptionId: inscriptionInfo.result.inscription_id,
+          inscriptionNumber: inscriptionInfo.result.inscription_number,
+        };
+      });
 
-    return batchInscriptionInfo;
+      return batchInscriptionInfo;
+    } catch (error) {
+      throw new BadRequestException(
+        'Ordinal api is not working now or Invalid address',
+      );
+    }
   }
 }

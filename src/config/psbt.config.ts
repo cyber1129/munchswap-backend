@@ -5,4 +5,5 @@ export default registerAs('psbtConfig', () => ({
   adminAddress: process.env.ADMIN_WALLET_ADDRESS,
   network: process.env.NETWORK,
   unisatApiKey: process.env.UNISAT_KEY,
+  bisApiKey: process.env.BIS_KEY,
 }));

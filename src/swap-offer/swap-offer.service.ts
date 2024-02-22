@@ -951,62 +951,68 @@ export class SwapOfferService {
       },
     });
 
-    const entities = await Promise.all(
-      swapOffers.map(async (swapOffer) => {
-        return {
-          uuid: swapOffer.uuid,
-          price: swapOffer.price,
-          status: swapOffer.status,
-          pushedAt: swapOffer.updatedAt,
-          buyerInscription: await Promise.all(
-            swapOffer.buyerSwapInscription.map(async (inscription) => {
-              const inscriptionInfo =
-                await this.psbtService.getInscriptionWithUtxo(
-                  inscription.inscription.inscriptionId,
-                );
+    const inscriptionIds: string[] = [];
 
-              return {
-                inscription: {
-                  ...inscriptionInfo,
-                  collection: {
-                    name: inscription.inscription.collection.name,
-                    imgUrl: inscription.inscription.collection.imgUrl,
-                    description: inscription.inscription.collection.description,
-                    discord: inscription.inscription.collection.discord,
-                    website: inscription.inscription.collection.website,
-                    twitter: inscription.inscription.collection.twitter,
-                  },
-                },
-              };
-            }),
-          ),
-          sellerInscription: await Promise.all(
-            swapOffer.sellerSwapInscription.map(async (inscription) => {
-              const inscriptionInfo =
-                await this.psbtService.getInscriptionWithUtxo(
-                  inscription.inscription.inscriptionId,
-                );
+    swapOffers.forEach((swapOffer) => {
+      swapOffer.buyerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+      swapOffer.sellerSwapInscription.forEach((inscription) =>
+        inscriptionIds.push(inscription.inscription.inscriptionId),
+      );
+    });
 
-              return {
-                inscription: {
-                  ...inscriptionInfo,
-                  collection: {
-                    name: inscription.inscription.collection.name,
-                    imgUrl: inscription.inscription.collection.imgUrl,
-                    description: inscription.inscription.collection.description,
-                    discord: inscription.inscription.collection.discord,
-                    website: inscription.inscription.collection.website,
-                    twitter: inscription.inscription.collection.twitter,
-                  },
+    const batchInscriptionInfo =
+      await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
+
+    const entities = swapOffers.map((swapOffer) => {
+      return {
+        uuid: swapOffer.uuid,
+        price: swapOffer.price,
+        status: swapOffer.status,
+        pushedAt: swapOffer.updatedAt,
+        buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
+          const inscriptionInfo =
+            batchInscriptionInfo[inscription.inscription.inscriptionId];
+
+          return {
+            inscription: {
+              ...inscriptionInfo,
+              collection: {
+                name: inscription.inscription.collection.name,
+                imgUrl: inscription.inscription.collection.imgUrl,
+                description: inscription.inscription.collection.description,
+                discord: inscription.inscription.collection.discord,
+                website: inscription.inscription.collection.website,
+                twitter: inscription.inscription.collection.twitter,
+              },
+            },
+          };
+        }),
+        sellerInscription: swapOffer.sellerSwapInscription.map(
+          (inscription) => {
+            const inscriptionInfo =
+              batchInscriptionInfo[inscription.inscription.inscriptionId];
+
+            return {
+              inscription: {
+                ...inscriptionInfo,
+                collection: {
+                  name: inscription.inscription.collection.name,
+                  imgUrl: inscription.inscription.collection.imgUrl,
+                  description: inscription.inscription.collection.description,
+                  discord: inscription.inscription.collection.discord,
+                  website: inscription.inscription.collection.website,
+                  twitter: inscription.inscription.collection.twitter,
                 },
-              };
-            }),
-          ),
-          buyer: swapOffer.buyer,
-          seller: swapOffer.seller,
-        };
-      }),
-    );
+              },
+            };
+          },
+        ),
+        buyer: swapOffer.buyer,
+        seller: swapOffer.seller,
+      };
+    });
 
     return entities;
   }

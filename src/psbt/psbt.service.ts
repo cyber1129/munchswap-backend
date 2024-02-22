@@ -28,6 +28,10 @@ interface IUtxo {
   scriptpubkey?: string;
 }
 
+interface BatchInscriptionInfo {
+  [index: string]: Partial<IInscription>;
+}
+
 @Injectable()
 export class PsbtService {
   private feePercent: number;
@@ -35,6 +39,7 @@ export class PsbtService {
   private network: Network;
   private readonly logger: Logger;
   private unisatApiKey: string;
+  private bisApiKey: string;
 
   constructor(private configService: ConfigService) {
     this.logger = new Logger(PsbtService.name);
@@ -43,6 +48,7 @@ export class PsbtService {
     this.adminAddress = this.configService.get('psbtConfig.adminAddress');
     const networkType = this.configService.get('psbtConfig.network');
     this.unisatApiKey = this.configService.get('psbtConfig.unisatApiKey');
+    this.bisApiKey = this.configService.get('psbtConfig.bisApiKey');
 
     if (networkType === 'mainnet') this.network = bitcoin;
     else this.network = testnet;
@@ -515,5 +521,41 @@ export class PsbtService {
         'Ordinal api is not working now or Invalid address',
       );
     }
+  }
+
+  async getBatchInscriptionInfoBIS(
+    inscriptions: string[],
+  ): Promise<BatchInscriptionInfo> {
+    if (inscriptions.length === 0) return {};
+
+    const url =
+      this.network === testnet
+        ? `https://testnet.api.bestinslot.xyz/v3/inscription/batch_info`
+        : `https://api.bestinslot.xyz/v3/inscription/batch_info`;
+
+    const res = await axios.post(
+      url,
+      {
+        queries: inscriptions,
+      },
+      {
+        headers: {
+          'x-api-key': this.bisApiKey,
+        },
+      },
+    );
+
+    const batchInscriptionInfo: BatchInscriptionInfo = {};
+
+    res.data.data.forEach((inscriptionInfo: any) => {
+      batchInscriptionInfo[inscriptionInfo.query as string] = {
+        contentType: inscriptionInfo.result.mime_type,
+        address: inscriptionInfo.result.wallet,
+        inscriptionId: inscriptionInfo.result.inscription_id,
+        inscriptionNumber: inscriptionInfo.result.inscription_number,
+      };
+    });
+
+    return batchInscriptionInfo;
   }
 }

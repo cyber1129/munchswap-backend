@@ -85,8 +85,15 @@ export class CollectionService {
       ),
     );
 
+    const inscriptionIds = inscriptions.data.map(
+      (inscriptionId) => inscriptionId,
+    );
+
+    const batchInscriptionInfo =
+      await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
+
     collection['inscriptions'] = {
-      data: inscriptionDatas,
+      data: Object.values(batchInscriptionInfo),
       meta: inscriptions.meta,
     };
 

@@ -951,48 +951,62 @@ export class SwapOfferService {
       },
     });
 
-    const entities = swapOffers.map((swapOffer) => {
-      return {
-        uuid: swapOffer.uuid,
-        price: swapOffer.price,
-        status: swapOffer.status,
-        pushedAt: swapOffer.updatedAt,
-        buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
-          return {
-            inscription: {
-              inscriptionId: inscription.inscription.inscriptionId,
-              collection: {
-                name: inscription.inscription.collection.name,
-                imgUrl: inscription.inscription.collection.imgUrl,
-                description: inscription.inscription.collection.description,
-                discord: inscription.inscription.collection.discord,
-                website: inscription.inscription.collection.website,
-                twitter: inscription.inscription.collection.twitter,
-              },
-            },
-          };
-        }),
-        sellerInscription: swapOffer.sellerSwapInscription.map(
-          (inscription) => {
-            return {
-              inscription: {
-                inscriptionId: inscription.inscription.inscriptionId,
-                collection: {
-                  name: inscription.inscription.collection.name,
-                  imgUrl: inscription.inscription.collection.imgUrl,
-                  description: inscription.inscription.collection.description,
-                  discord: inscription.inscription.collection.discord,
-                  website: inscription.inscription.collection.website,
-                  twitter: inscription.inscription.collection.twitter,
+    const entities = await Promise.all(
+      swapOffers.map(async (swapOffer) => {
+        return {
+          uuid: swapOffer.uuid,
+          price: swapOffer.price,
+          status: swapOffer.status,
+          pushedAt: swapOffer.updatedAt,
+          buyerInscription: await Promise.all(
+            swapOffer.buyerSwapInscription.map(async (inscription) => {
+              const inscriptionInfo =
+                await this.psbtService.getInscriptionWithUtxo(
+                  inscription.inscription.inscriptionId,
+                );
+
+              return {
+                inscription: {
+                  ...inscriptionInfo,
+                  collection: {
+                    name: inscription.inscription.collection.name,
+                    imgUrl: inscription.inscription.collection.imgUrl,
+                    description: inscription.inscription.collection.description,
+                    discord: inscription.inscription.collection.discord,
+                    website: inscription.inscription.collection.website,
+                    twitter: inscription.inscription.collection.twitter,
+                  },
                 },
-              },
-            };
-          },
-        ),
-        buyer: swapOffer.buyer,
-        seller: swapOffer.seller,
-      };
-    });
+              };
+            }),
+          ),
+          sellerInscription: await Promise.all(
+            swapOffer.sellerSwapInscription.map(async (inscription) => {
+              const inscriptionInfo =
+                await this.psbtService.getInscriptionWithUtxo(
+                  inscription.inscription.inscriptionId,
+                );
+
+              return {
+                inscription: {
+                  ...inscriptionInfo,
+                  collection: {
+                    name: inscription.inscription.collection.name,
+                    imgUrl: inscription.inscription.collection.imgUrl,
+                    description: inscription.inscription.collection.description,
+                    discord: inscription.inscription.collection.discord,
+                    website: inscription.inscription.collection.website,
+                    twitter: inscription.inscription.collection.twitter,
+                  },
+                },
+              };
+            }),
+          ),
+          buyer: swapOffer.buyer,
+          seller: swapOffer.seller,
+        };
+      }),
+    );
 
     return entities;
   }

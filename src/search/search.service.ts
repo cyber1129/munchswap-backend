@@ -15,6 +15,8 @@ export const AllowedContentTypes = [
   'image/jpeg',
   'image/png',
   'image/webp',
+  'text/html',
+  'text/html;charset=utf-8',
 ];
 
 @Injectable()

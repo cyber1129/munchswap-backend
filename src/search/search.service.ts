@@ -99,7 +99,7 @@ export class SearchService {
         );
 
         if (!collection) return { ...inscription };
-        return { ...inscription, collection };
+        return { ...inscription, collection: { ...collection.collection } };
       });
     } catch (error) {
       return {};

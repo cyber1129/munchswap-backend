@@ -66,7 +66,12 @@ export class SearchService {
         this.psbtService.getInscriptionWithUtxo(inscriptionId),
       ]);
 
-      return { ...inscriptionUtxo, ...inscription };
+      const contentType = AllowedContentTypes.find(
+        (contentType) => contentType === inscriptionUtxo.contentType,
+      );
+
+      if (contentType) return { ...inscriptionUtxo, ...inscription };
+      return [];
     } catch (_error) {
       return {};
     }

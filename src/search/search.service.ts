@@ -46,7 +46,7 @@ export class SearchService {
       return { inscription, collection, address };
     } else {
       const [inscription, collection, address] = await Promise.all([
-        keyWord.length === 66 ? this.searchInscription(keyWord) : [],
+        this.searchInscription(keyWord),
         this.searchCollection(keyWord),
         {},
       ]);

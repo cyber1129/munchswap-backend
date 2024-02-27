@@ -1106,6 +1106,11 @@ export class SwapOfferService {
 
     if (!swapOffer) throw new BadRequestException('Can not find swap offer');
 
+    const pushedAt =
+      swapOffer.status === OfferStatus.PUSHED
+        ? { pushedAt: swapOffer.updatedAt }
+        : {};
+
     return {
       uuid: swapOffer.uuid,
       psbt: swapOffer.psbt,
@@ -1157,6 +1162,7 @@ export class SwapOfferService {
           };
         }),
       ),
+      ...pushedAt,
     };
   }
 }

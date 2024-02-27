@@ -351,10 +351,10 @@ export class PsbtService {
       };
     } catch (error) {
       this.logger.error(
-        'Ordinal api is not working now, please try again later Or invalid inscription id',
+        `Ordinal api is not working now, please try again later Or invalid inscription id ${inscriptionId}`,
       );
       throw new BadRequestException(
-        'Ordinal api is not working now, please try again later Or invalid inscription id',
+        `Ordinal api is not working now, please try again later Or invalid inscription id ${inscriptionId}`,
       );
     }
   }

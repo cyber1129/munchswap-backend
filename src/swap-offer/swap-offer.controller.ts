@@ -71,7 +71,7 @@ export class SwapOfferController {
     await this.swapOfferService.cancelSwapOffer(body.uuid, req.user.address);
 
     return {
-      msg: 'You successfully canceled an swap offer',
+      msg: 'Successfully cancelled the swap offer',
     };
   }
 
@@ -91,7 +91,7 @@ export class SwapOfferController {
     );
 
     return {
-      msg: 'Congratulations! Successfully created a swap offer',
+      msg: 'Successfully created the swap offer',
       offerId: offerUuid,
     };
   }
@@ -112,7 +112,7 @@ export class SwapOfferController {
     );
 
     return {
-      msg: 'Congratulations! Successfully accepted a swap offer',
+      msg: 'Successfully accepted the swap offer',
       txId,
     };
   }

@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMinSize,
   IsArray,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
@@ -46,7 +47,7 @@ export class CreateCollectionDto {
   description: string;
 
   @ApiProperty({
-    example: 'Image Url',
+    example: 'Website Url',
     required: false,
     minimum: 1,
     maximum: 128,
@@ -55,10 +56,11 @@ export class CreateCollectionDto {
   @IsString()
   @MinLength(1)
   @MaxLength(1200)
+  @IsOptional()
   website: string;
 
   @ApiProperty({
-    example: 'Image Url',
+    example: 'Twitter Url',
     required: false,
     minimum: 1,
     maximum: 128,
@@ -67,10 +69,11 @@ export class CreateCollectionDto {
   @IsString()
   @MinLength(1)
   @MaxLength(1200)
+  @IsOptional()
   twitter: string;
 
   @ApiProperty({
-    example: 'Image Url',
+    example: 'Discord Url',
     required: false,
     minimum: 1,
     maximum: 128,
@@ -79,6 +82,7 @@ export class CreateCollectionDto {
   @IsString()
   @MinLength(1)
   @MaxLength(1200)
+  @IsOptional()
   discord: string;
 
   @ApiProperty({

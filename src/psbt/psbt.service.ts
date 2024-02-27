@@ -395,10 +395,11 @@ export class PsbtService {
     };
 
     let cursor = 0;
+    const size = 200;
     const utxos: IUtxo[] = [];
 
     while (1) {
-      const res = await axios.get(url, { ...config, params: { cursor } });
+      const res = await axios.get(url, { ...config, params: { cursor, size } });
 
       if (res.data.code === -1) throw new BadRequestException('Invalid addres');
 
@@ -435,6 +436,7 @@ export class PsbtService {
       };
 
       let cursor = 0;
+      const size = 200;
       const inscriptionUtxos: IInscription[] = [];
 
       while (1) {
@@ -442,6 +444,7 @@ export class PsbtService {
           ...config,
           params: {
             cursor,
+            size,
           },
         });
 
@@ -486,6 +489,7 @@ export class PsbtService {
       };
 
       let cursor = 0;
+      const size = 200;
       const inscriptionUtxos: IInscription[] = [];
 
       while (1) {
@@ -493,6 +497,7 @@ export class PsbtService {
           ...config,
           params: {
             cursor,
+            size,
           },
         });
 

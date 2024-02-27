@@ -46,6 +46,42 @@ export class CreateCollectionDto {
   description: string;
 
   @ApiProperty({
+    example: 'Image Url',
+    required: false,
+    minimum: 1,
+    maximum: 128,
+    description: '',
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(1200)
+  website: string;
+
+  @ApiProperty({
+    example: 'Image Url',
+    required: false,
+    minimum: 1,
+    maximum: 128,
+    description: '',
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(1200)
+  twitter: string;
+
+  @ApiProperty({
+    example: 'Image Url',
+    required: false,
+    minimum: 1,
+    maximum: 128,
+    description: '',
+  })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(1200)
+  discord: string;
+
+  @ApiProperty({
     example: [
       '29cae3cba151f520b23d8649e9bb5917d9f90227536fe356689a6c76885f582ai0',
       '3de0c304b7542eddf4638a08cf02c89fc98dffa1170f3369fc44b41f25bf8442i0',

@@ -65,7 +65,9 @@ export class SwapOfferService {
       });
 
     if (address !== buyerAddress)
-      throw new BadRequestException('You are not owner of inscription');
+      throw new BadRequestException(
+        'You are not the owner of this inscription',
+      );
 
     let [buyer, seller] = await Promise.all([
       this.userService.findByAddress(buyerAddress),

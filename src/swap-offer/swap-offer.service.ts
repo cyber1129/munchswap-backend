@@ -756,6 +756,9 @@ export class SwapOfferService {
         seller: true,
         buyer: true,
       },
+      order: {
+        updatedAt: 'DESC',
+      },
     });
 
     const inscriptionIds: string[] = [];
@@ -773,12 +776,17 @@ export class SwapOfferService {
       await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
 
     const entities = swapOffers.map((swapOffer) => {
+      const pushedAt =
+        swapOffer.status === OfferStatus.PUSHED
+          ? { pushedAt: swapOffer.updatedAt }
+          : {};
+
       return {
         uuid: swapOffer.uuid,
         price: swapOffer.price,
         txId: swapOffer.txId,
         status: swapOffer.status,
-        pushedAt: swapOffer.updatedAt,
+        expiredAt: swapOffer.expiredAt,
         buyerInscription: swapOffer.buyerSwapInscription.map((inscription) => {
           return {
             inscription: {
@@ -813,6 +821,7 @@ export class SwapOfferService {
         ),
         buyer: swapOffer.buyer,
         seller: swapOffer.seller,
+        ...pushedAt,
       };
     });
 
@@ -896,6 +905,9 @@ export class SwapOfferService {
         },
         seller: true,
         buyer: true,
+      },
+      order: {
+        updatedAt: 'DESC',
       },
     });
 

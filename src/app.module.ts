@@ -22,6 +22,9 @@ import psbtConfig from './config/psbt.config';
 import { FileModule } from './file/file.module';
 import { SearchModule } from './search/search.module';
 import fileConfig from './config/file.config';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
+import redisConfig from './config/redis.config';
 
 EnvHelper.verifyNodeEnv();
 
@@ -31,7 +34,14 @@ EnvHelper.verifyNodeEnv();
     ConfigModule.forRoot({
       envFilePath: EnvHelper.getEnvFilePath(),
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig, psbtConfig, fileConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        jwtConfig,
+        psbtConfig,
+        fileConfig,
+        redisConfig,
+      ],
       validate: validate,
     }),
     TypeOrmModule.forRootAsync({
@@ -42,6 +52,21 @@ EnvHelper.verifyNodeEnv();
           ...config,
           namingStrategy: new SnakeNamingStrategy(),
           autoLoadEntities: true,
+        };
+      },
+      inject: [ConfigService],
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const config = configService.get('redisConfig');
+        return {
+          ...config,
+          isGlobal: true,
+          ttl: 300,
+          store: redisStore,
+          no_ready_check: true, // new property
         };
       },
       inject: [ConfigService],

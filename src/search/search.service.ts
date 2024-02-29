@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { validate, getAddressInfo } from 'bitcoin-address-validation';
 
 import { CollectionService } from '@src/collection/collection.service';
@@ -6,6 +6,8 @@ import { InscriptionService } from '@src/inscription/inscription.service';
 import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
 import { ConfigService } from '@nestjs/config';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 export const AllowedContentTypes = [
   'image/svg+xml',
@@ -29,6 +31,7 @@ export class SearchService {
     private readonly userService: UserService,
     private readonly psbtService: PsbtService,
     private readonly configService: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
   ) {
     this.network = this.configService.get('psbtConfig.network');
   }
@@ -79,6 +82,9 @@ export class SearchService {
 
   async searchByAddress(address: string) {
     try {
+      const cachedData = await this.cacheService.get<any>(address);
+      if (cachedData) return cachedData;
+
       const inscriptions = await this.psbtService.getInscriptionByAddress(
         address,
       );
@@ -97,7 +103,7 @@ export class SearchService {
           inscriptionIds,
         );
 
-      return allowInscriptions.map((inscription) => {
+      const addressInscriptions = allowInscriptions.map((inscription) => {
         const collection = collectionInfos.find(
           (collectionInfo) =>
             collectionInfo.inscriptionId === inscription.inscriptionId,
@@ -106,6 +112,9 @@ export class SearchService {
         if (!collection) return { ...inscription };
         return { ...inscription, collection: { ...collection.collection } };
       });
+
+      await this.cacheService.set(address, addressInscriptions);
+      return addressInscriptions;
     } catch (error) {
       return {};
     }

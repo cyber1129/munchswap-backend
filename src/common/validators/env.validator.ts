@@ -118,6 +118,22 @@ class EnvironmentVariables {
   @IsString()
   @MinLength(1)
   UNISAT_KEY: string;
+
+  @IsString()
+  @MinLength(1)
+  REDIS_HOST: string;
+
+  @IsInt()
+  @Min(1)
+  REDIS_PORT: number;
+
+  @IsString()
+  @MinLength(1)
+  REDIS_USERNAME: string;
+
+  @IsString()
+  @MinLength(1)
+  REDIS_PASSWORD: string;
 }
 
 export function validate(config: Record<string, unknown>) {

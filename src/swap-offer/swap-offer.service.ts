@@ -56,13 +56,22 @@ export class SwapOfferService {
     price?: number;
     expiredIn: string;
   }) {
-    const { psbt, buyerAddress, sellerAddress } =
-      await this.psbtService.generateSwapPsbt({
-        walletType,
-        sellerInscriptionIds,
-        buyerInscriptionIds,
-        price: Math.floor(price * 10 ** 8),
-      });
+    const user = await this.userService.findByAddress(address);
+
+    const {
+      psbt,
+      buyerAddress,
+      sellerAddress,
+      buyerPaymentsignIndexes,
+      buyerTaprootsignIndexes,
+    } = await this.psbtService.generateSwapPsbt({
+      walletType: user.walletType,
+      sellerInscriptionIds,
+      buyerInscriptionIds,
+      price: Math.floor(price * 10 ** 8),
+      paymentPubkey: user.paymentPubkey,
+      pubkey: user.pubkey,
+    });
 
     if (address !== buyerAddress)
       throw new BadRequestException(
@@ -119,7 +128,14 @@ export class SwapOfferService {
       ),
     );
 
-    return { psbt };
+    if (walletType === WalletTypes.XVERSE)
+      return {
+        psbt: this.psbtService.convertHexedToBase64(psbt),
+        buyerPaymentsignIndexes,
+        buyerTaprootsignIndexes,
+      };
+
+    return { psbt, buyerPaymentsignIndexes, buyerTaprootsignIndexes };
   }
 
   async saveBuyerSwapInscription(
@@ -189,17 +205,54 @@ export class SwapOfferService {
   ): Promise<string> {
     const user = await this.userService.findByAddress(userAddress);
 
+    const psbt =
+      user.walletType === WalletTypes.XVERSE
+        ? this.psbtService.convertBase64ToHexed(body.psbt)
+        : body.psbt;
+
     const swapOffer = await this.swapOfferRepository.findOne({
-      where: { psbt: body.psbt, buyer: { id: user.id } },
+      where: { psbt, buyer: { id: user.id } },
+      relations: {
+        buyerSwapInscription: true,
+        sellerSwapInscription: true,
+      },
     });
 
     if (!swapOffer)
       throw new BadRequestException('Can not find that swap offer');
 
-    const signedPsbt = body.signedPsbt;
+    let signedPsbt =
+      user.walletType === WalletTypes.XVERSE
+        ? this.psbtService.convertBase64ToHexed(body.signedPsbt)
+        : body.signedPsbt;
+
+    const inputCount = this.psbtService.getInputCount(psbt);
+
+    const buyerTaprootsignIndexes: number[] = [];
+    for (let i = 0; i < swapOffer.buyerSwapInscription.length; i++) {
+      buyerTaprootsignIndexes.push(i);
+    }
+
+    const buyerPaymentsignIndexes: number[] = [];
+    for (
+      let i =
+        swapOffer.sellerSwapInscription.length +
+        swapOffer.buyerSwapInscription.length;
+      i < inputCount;
+      i++
+    ) {
+      buyerPaymentsignIndexes.push(i);
+    }
+
+    if (user.walletType === WalletTypes.XVERSE) {
+      signedPsbt = this.psbtService.finalizePsbtInput(signedPsbt, [
+        ...buyerPaymentsignIndexes,
+        ...buyerTaprootsignIndexes,
+      ]);
+    }
 
     await this.swapOfferRepository.update(
-      { psbt: body.psbt },
+      { psbt },
       {
         buyerSignedPsbt: signedPsbt,
         status: OfferStatus.SIGNED,
@@ -217,18 +270,42 @@ export class SwapOfferService {
 
     const swapOffer = await this.swapOfferRepository.findOne({
       where: {
-        psbt: body.psbt,
+        uuid: body.offerId,
         seller: { id: seller.id },
+      },
+      relations: {
+        sellerSwapInscription: true,
+        buyerSwapInscription: true,
       },
     });
 
     if (!swapOffer)
       throw new BadRequestException('Can not find that swap now offer');
 
-    const signedPsbt = body.signedPsbt;
+    let signedPsbt =
+      seller.walletType === WalletTypes.XVERSE
+        ? this.psbtService.convertBase64ToHexed(body.signedPsbt)
+        : body.signedPsbt;
+
+    const sellerTaprootsignIndexes: number[] = [];
+    for (
+      let i = swapOffer.buyerSwapInscription.length;
+      i <
+      swapOffer.buyerSwapInscription.length +
+        swapOffer.sellerSwapInscription.length;
+      i++
+    ) {
+      sellerTaprootsignIndexes.push(i);
+    }
+
+    if (seller.walletType === WalletTypes.XVERSE)
+      signedPsbt = this.psbtService.finalizePsbtInput(
+        signedPsbt,
+        sellerTaprootsignIndexes,
+      );
 
     await this.swapOfferRepository.update(
-      { psbt: body.psbt },
+      { uuid: body.offerId },
       {
         sellerSignedPsbt: signedPsbt,
         status: OfferStatus.ACCEPTED,
@@ -451,9 +528,26 @@ export class SwapOfferService {
       await this.psbtService.getBatchInscriptionInfoBIS(inscriptionIds);
 
     const entities = swapOffers.map((swapOffer) => {
+      const sellerTaprootsignIndexes: number[] = [];
+      for (
+        let i = swapOffer.buyerSwapInscription.length;
+        i <
+        swapOffer.buyerSwapInscription.length +
+          swapOffer.sellerSwapInscription.length;
+        i++
+      ) {
+        sellerTaprootsignIndexes.push(i);
+      }
+
       return {
+        sellerTaprootsignIndexes,
         price: swapOffer.price,
-        psbt: swapOffer.psbt,
+        psbt: this.psbtService.addTapInternalKey(
+          swapOffer.psbt,
+          sellerTaprootsignIndexes,
+          user.pubkey,
+          user.walletType,
+        ),
         txId: swapOffer.txId,
         buyer: swapOffer.buyer,
         seller: swapOffer.seller,
@@ -1100,6 +1194,8 @@ export class SwapOfferService {
       select: {
         seller: {
           address: true,
+          pubkey: true,
+          walletType: true,
         },
         buyer: {
           address: true,
@@ -1125,9 +1221,31 @@ export class SwapOfferService {
         ? { pushedAt: swapOffer.updatedAt }
         : {};
 
+    const sellerTaprootsignIndexes: number[] = [];
+    for (
+      let i = swapOffer.buyerSwapInscription.length;
+      i <
+      swapOffer.buyerSwapInscription.length +
+        swapOffer.sellerSwapInscription.length;
+      i++
+    ) {
+      sellerTaprootsignIndexes.push(i);
+    }
+
+    const psbt = this.psbtService.addTapInternalKey(
+      swapOffer.psbt,
+      sellerTaprootsignIndexes,
+      swapOffer.seller.pubkey,
+      swapOffer.seller.walletType,
+    );
+
     return {
+      sellerTaprootsignIndexes,
       uuid: swapOffer.uuid,
-      psbt: swapOffer.psbt,
+      psbt:
+        swapOffer.seller.walletType === WalletTypes.XVERSE
+          ? this.psbtService.convertHexedToBase64(psbt)
+          : psbt,
       txId: swapOffer.txId,
       buyer: swapOffer.buyer,
       seller: swapOffer.seller,

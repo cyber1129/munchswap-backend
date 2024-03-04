@@ -6,7 +6,7 @@ import { WalletTypes } from '@src/user/user.entity';
 export class SellerSignPsbtDto {
   @ApiProperty({
     example:
-      'e19eea22dc6f6fc16c5a6aad4f6c7bdfe16733def97be0f6cb1c5d12ede37dbfi0',
+      '2c96d4c9-8a7d-48b9-881d-584b92ba13c2',
     required: false,
     minimum: 1,
     maximum: 5000,
@@ -15,7 +15,7 @@ export class SellerSignPsbtDto {
   @IsString()
   @MinLength(1)
   @MaxLength(5000)
-  psbt: string;
+  offerId: string;
 
   @ApiProperty({
     example:

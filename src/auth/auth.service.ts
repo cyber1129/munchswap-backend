@@ -61,13 +61,14 @@ export class AuthService {
     }
 
     const user = await this.userService.findByAddress(body.address);
-    if (user)
+    if (user.pubkey)
       return {
         address: user.address,
         uuid: user.uuid,
         role: user.role,
       };
-    const savedUser = await this.userService.create(body);
+
+    const savedUser = await this.userService.create(body, true);
 
     return {
       address: savedUser.address,

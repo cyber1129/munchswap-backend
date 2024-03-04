@@ -6,6 +6,8 @@ import * as ecc from 'tiny-secp256k1';
 import { ConfigService } from '@nestjs/config';
 import { testnet, bitcoin } from 'bitcoinjs-lib/src/networks';
 
+import * as btc from '@scure/btc-signer';
+
 import { WalletTypes } from '@src/user/user.entity';
 
 Bitcoin.initEccLib(ecc);
@@ -59,12 +61,22 @@ export class PsbtService {
     sellerInscriptionIds,
     buyerInscriptionIds,
     price,
+    paymentPubkey,
+    pubkey,
   }: {
     walletType: WalletTypes;
     sellerInscriptionIds: string[];
     buyerInscriptionIds: string[];
     price: number;
-  }): Promise<{ psbt: string; buyerAddress: string; sellerAddress: string }> {
+    paymentPubkey?: string;
+    pubkey: string;
+  }): Promise<{
+    psbt: string;
+    buyerAddress: string;
+    sellerAddress: string;
+    buyerTaprootsignIndexes: number[];
+    buyerPaymentsignIndexes: number[];
+  }> {
     const buyerInscriptionsWithUtxo = await Promise.all(
       buyerInscriptionIds.map((inscriptionId) =>
         this.getInscriptionWithUtxo(inscriptionId),
@@ -83,6 +95,7 @@ export class PsbtService {
       buyerInscriptionsWithUtxo[0].scriptpubkey,
       'hex',
     );
+
     const sellerScriptpubkey = Buffer.from(
       sellerInscriptionsWithUtxo[0].scriptpubkey,
       'hex',
@@ -90,7 +103,11 @@ export class PsbtService {
 
     const psbt = new Bitcoin.Psbt({ network: this.network });
 
+    const buyerTaprootsignIndexes: number[] = [];
+
     buyerInscriptionsWithUtxo.forEach((inscriptionUtxo) => {
+      buyerTaprootsignIndexes.push(psbt.inputCount);
+
       psbt.addInput({
         hash: inscriptionUtxo.txid,
         index: inscriptionUtxo.vout,
@@ -98,6 +115,10 @@ export class PsbtService {
           value: inscriptionUtxo.value,
           script: buyerScriptpubkey,
         },
+        tapInternalKey:
+          walletType === WalletTypes.XVERSE
+            ? Buffer.from(pubkey, 'hex')
+            : Buffer.from(pubkey, 'hex').slice(1, 33),
         sighashType: Bitcoin.Transaction.SIGHASH_ALL,
       });
 
@@ -124,25 +145,62 @@ export class PsbtService {
       });
     });
 
-    const btcUtxos = await this.getBtcUtxoByAddress(buyerAddress);
+    let paymentAddress, paymentOutput;
+
+    if (walletType === WalletTypes.XVERSE) {
+      const hexedPaymentPubkey = Buffer.from(paymentPubkey, 'hex');
+      const p2wpkh = Bitcoin.payments.p2wpkh({
+        pubkey: hexedPaymentPubkey,
+        network: this.network,
+      });
+
+      const { address, redeem } = Bitcoin.payments.p2sh({
+        redeem: p2wpkh,
+        network: this.network,
+      });
+
+      paymentAddress = address;
+      paymentOutput = redeem?.output;
+    } else if (walletType === WalletTypes.UNISAT) {
+      paymentAddress = buyerAddress;
+    }
+
+    const btcUtxos = await this.getBtcUtxoByAddress(paymentAddress);
     const feeRate = await this.getFeeRate(this.network);
 
     let amount = 0;
+
+    const buyerPaymentsignIndexes: number[] = [];
 
     for (const utxo of btcUtxos) {
       const fee = this.calculateTxFee(psbt, feeRate);
 
       if (amount < price + fee && utxo.value > 10000) {
         amount += utxo.value;
-        psbt.addInput({
-          hash: utxo.txid,
-          index: utxo.vout,
-          witnessUtxo: {
-            value: utxo.value,
-            script: buyerScriptpubkey,
-          },
-          sighashType: Bitcoin.Transaction.SIGHASH_ALL,
-        });
+
+        buyerPaymentsignIndexes.push(psbt.inputCount);
+
+        if (walletType === WalletTypes.UNISAT) {
+          psbt.addInput({
+            hash: utxo.txid,
+            index: utxo.vout,
+            witnessUtxo: {
+              value: utxo.value,
+              script: buyerScriptpubkey,
+            },
+            sighashType: Bitcoin.Transaction.SIGHASH_ALL,
+          });
+        } else if (walletType === WalletTypes.XVERSE) {
+          const txHex = await this.getTxHexById(utxo.txid);
+
+          psbt.addInput({
+            hash: utxo.txid,
+            index: utxo.vout,
+            redeemScript: paymentOutput,
+            nonWitnessUtxo: Buffer.from(txHex, 'hex'),
+            sighashType: Bitcoin.Transaction.SIGHASH_ALL,
+          });
+        }
       }
     }
 
@@ -160,11 +218,17 @@ export class PsbtService {
       });
 
     psbt.addOutput({
-      address: buyerAddress,
+      address: paymentAddress,
       value: amount - price - fee,
     });
 
-    return { psbt: psbt.toHex(), buyerAddress, sellerAddress };
+    return {
+      psbt: psbt.toHex(),
+      buyerAddress,
+      sellerAddress,
+      buyerPaymentsignIndexes,
+      buyerTaprootsignIndexes,
+    };
   }
 
   calculateTxFee(psbt: Bitcoin.Psbt, feeRate: number): number {
@@ -568,5 +632,42 @@ export class PsbtService {
         'Ordinal api is not working now or Invalid address',
       );
     }
+  }
+
+  async getTxHexById(txId: string): Promise<string> {
+    try {
+      const { data } = await axios.get(
+        `https://mempool.space/${
+          this.network === testnet ? 'testnet/' : ''
+        }api/tx/${txId}/hex`,
+      );
+
+      return data as string;
+    } catch (error) {
+      this.logger.error('Mempool api error. Can not get transaction hex');
+
+      throw new BadRequestException(
+        'Mempool api is not working now. Try again later',
+      );
+    }
+  }
+
+  addTapInternalKey(
+    hexedPsbt: string,
+    indexes: number[],
+    pubkey: string,
+    walletType: WalletTypes,
+  ): string {
+    const psbt = Bitcoin.Psbt.fromHex(hexedPsbt);
+    indexes.forEach((index) => {
+      psbt.updateInput(index, {
+        tapInternalKey:
+          walletType === WalletTypes.XVERSE
+            ? Buffer.from(pubkey, 'hex')
+            : Buffer.from(pubkey, 'hex').slice(1, 33),
+      });
+    });
+
+    return psbt.toHex();
   }
 }

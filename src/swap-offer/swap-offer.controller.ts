@@ -43,18 +43,25 @@ export class SwapOfferController {
   async generatePsbt(
     @Request() req,
     @Body() body: GenerateSwapPsbtDto,
-  ): Promise<{ psbt: string }> {
-    const { psbt } = await this.swapOfferService.generatePsbt({
-      address: req.user.address,
-      buyerInscriptionIds: body.buyerInscriptionIds,
-      sellerInscriptionIds: body.sellerInscriptionIds,
-      walletType: body.walletType,
-      price: body.price,
-      expiredIn: body.expiredIn,
-    });
+  ): Promise<{
+    psbt: string;
+    buyerPaymentsignIndexes: number[];
+    buyerTaprootsignIndexes: number[];
+  }> {
+    const { psbt, buyerPaymentsignIndexes, buyerTaprootsignIndexes } =
+      await this.swapOfferService.generatePsbt({
+        address: req.user.address,
+        buyerInscriptionIds: body.buyerInscriptionIds,
+        sellerInscriptionIds: body.sellerInscriptionIds,
+        walletType: body.walletType,
+        price: body.price,
+        expiredIn: body.expiredIn,
+      });
 
     return {
       psbt,
+      buyerPaymentsignIndexes,
+      buyerTaprootsignIndexes,
     };
   }
 

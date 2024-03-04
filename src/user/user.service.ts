@@ -16,10 +16,15 @@ export class UserService {
     return this.userRepository.findOne({ where: { uuid } });
   }
 
-  async create(body: LoginUserDto): Promise<User> {
+  async create(body: LoginUserDto, isUpdate?: boolean): Promise<User> {
     const userEntity: Partial<User> = {
       ...this.userRepository.create(body),
     };
+
+    if (isUpdate === true)
+    {  this.userRepository.update({ address: body.address }, userEntity);
+    return this.findByAddress(body.address)
+    }
 
     const user = await this.userRepository.save(userEntity, { reload: false });
 

@@ -52,6 +52,14 @@ export class User {
   @Column({ type: 'varchar', nullable: true, length: 255, default: '' })
   paymentAddress: string;
 
+  @ApiProperty({ description: 'Payment pubkey', maximum: 255, required: false })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    length: 255,
+  })
+  paymentPubkey: string;
+
   @ApiProperty({ description: 'Wallet type', maximum: 255, required: false })
   @Column({ type: 'enum', enum: WalletTypes, nullable: true })
   walletType: WalletTypes;

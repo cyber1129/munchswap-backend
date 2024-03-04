@@ -32,8 +32,9 @@ Table user {
   id integer [pk]
   uuid varchar
   address varchar
-  paymentAddress varchar
   pubkey varchar
+  paymentAddress varchar
+  paymentPubkey varchar
   walletType WalletTypes
   role Role
 }

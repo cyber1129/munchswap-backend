@@ -61,7 +61,7 @@ export class AuthService {
     }
 
     const user = await this.userService.findByAddress(body.address);
-    if (user.pubkey)
+    if (user.paymentPubkey !== null)
       return {
         address: user.address,
         uuid: user.uuid,

@@ -61,14 +61,17 @@ export class AuthService {
     }
 
     const user = await this.userService.findByAddress(body.address);
-    if (user.paymentPubkey !== null)
+    if (user && user.paymentPubkey !== null)
       return {
         address: user.address,
         uuid: user.uuid,
         role: user.role,
       };
 
-    const savedUser = await this.userService.create(body, true);
+    let savedUser;
+
+    if (user) savedUser = await this.userService.create(body, true);
+    else savedUser = await this.userService.create(body);
 
     return {
       address: savedUser.address,

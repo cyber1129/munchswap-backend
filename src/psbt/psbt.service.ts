@@ -92,7 +92,9 @@ export class PsbtService {
     const sellerAddress = sellerInscriptionsWithUtxo[0].address;
 
     if (buyerAddress === sellerAddress)
-      throw new BadRequestException('Can not create a deal with same address');
+      throw new BadRequestException(
+        'Cant create a swap using the same inscription',
+      );
 
     const buyerScriptpubkey = Buffer.from(
       buyerInscriptionsWithUtxo[0].scriptpubkey,

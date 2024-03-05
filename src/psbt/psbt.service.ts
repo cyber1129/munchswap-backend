@@ -91,6 +91,9 @@ export class PsbtService {
     const buyerAddress = buyerInscriptionsWithUtxo[0].address;
     const sellerAddress = sellerInscriptionsWithUtxo[0].address;
 
+    if (buyerAddress === sellerAddress)
+      throw new BadRequestException('Can not create a deal with same address');
+
     const buyerScriptpubkey = Buffer.from(
       buyerInscriptionsWithUtxo[0].scriptpubkey,
       'hex',

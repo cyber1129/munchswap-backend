@@ -47,8 +47,9 @@ export class SwapOfferController {
     psbt: string;
     buyerPaymentsignIndexes: number[];
     buyerTaprootsignIndexes: number[];
+    offerId: string;
   }> {
-    const { psbt, buyerPaymentsignIndexes, buyerTaprootsignIndexes } =
+    const { psbt, buyerPaymentsignIndexes, buyerTaprootsignIndexes, offerId } =
       await this.swapOfferService.generatePsbt({
         address: req.user.address,
         buyerInscriptionIds: body.buyerInscriptionIds,
@@ -62,6 +63,7 @@ export class SwapOfferController {
       psbt,
       buyerPaymentsignIndexes,
       buyerTaprootsignIndexes,
+      offerId,
     };
   }
 

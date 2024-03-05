@@ -119,7 +119,7 @@ export class PsbtService {
           script: buyerScriptpubkey,
         },
         tapInternalKey:
-          walletType === WalletTypes.XVERSE
+          walletType === WalletTypes.XVERSE || walletType === WalletTypes.OKX
             ? Buffer.from(pubkey, 'hex')
             : Buffer.from(pubkey, 'hex').slice(1, 33),
         sighashType: Bitcoin.Transaction.SIGHASH_ALL,
@@ -164,7 +164,10 @@ export class PsbtService {
 
       paymentAddress = address;
       paymentOutput = redeem?.output;
-    } else if (walletType === WalletTypes.UNISAT) {
+    } else if (
+      walletType === WalletTypes.UNISAT ||
+      walletType === WalletTypes.OKX
+    ) {
       paymentAddress = buyerAddress;
     }
 
@@ -183,7 +186,10 @@ export class PsbtService {
 
         buyerPaymentsignIndexes.push(psbt.inputCount);
 
-        if (walletType === WalletTypes.UNISAT) {
+        if (
+          walletType === WalletTypes.UNISAT ||
+          walletType === WalletTypes.OKX
+        ) {
           psbt.addInput({
             hash: utxo.txid,
             index: utxo.vout,
@@ -191,6 +197,10 @@ export class PsbtService {
               value: utxo.value,
               script: buyerScriptpubkey,
             },
+            tapInternalKey:
+              walletType === WalletTypes.OKX
+                ? Buffer.from(pubkey, 'hex')
+                : Buffer.from(pubkey, 'hex').slice(1, 33),
             sighashType: Bitcoin.Transaction.SIGHASH_ALL,
           });
         } else if (walletType === WalletTypes.XVERSE) {
@@ -665,7 +675,7 @@ export class PsbtService {
     indexes.forEach((index) => {
       psbt.updateInput(index, {
         tapInternalKey:
-          walletType === WalletTypes.XVERSE
+          walletType === WalletTypes.XVERSE || walletType === WalletTypes.OKX
             ? Buffer.from(pubkey, 'hex')
             : Buffer.from(pubkey, 'hex').slice(1, 33),
       });

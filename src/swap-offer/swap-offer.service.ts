@@ -133,9 +133,15 @@ export class SwapOfferService {
         psbt: this.psbtService.convertHexedToBase64(psbt),
         buyerPaymentsignIndexes,
         buyerTaprootsignIndexes,
+        offerId: swapOffer.uuid,
       };
 
-    return { psbt, buyerPaymentsignIndexes, buyerTaprootsignIndexes };
+    return {
+      psbt,
+      buyerPaymentsignIndexes,
+      buyerTaprootsignIndexes,
+      offerId: swapOffer.uuid,
+    };
   }
 
   async saveBuyerSwapInscription(
@@ -205,18 +211,18 @@ export class SwapOfferService {
   ): Promise<string> {
     const user = await this.userService.findByAddress(userAddress);
 
-    const psbt =
-      user.walletType === WalletTypes.XVERSE
-        ? this.psbtService.convertBase64ToHexed(body.psbt)
-        : body.psbt;
-
     const swapOffer = await this.swapOfferRepository.findOne({
-      where: { psbt, buyer: { id: user.id } },
+      where: { uuid: body.offerId, buyer: { id: user.id } },
       relations: {
         buyerSwapInscription: true,
         sellerSwapInscription: true,
       },
     });
+
+    const psbt =
+      user.walletType === WalletTypes.XVERSE
+        ? this.psbtService.convertBase64ToHexed(swapOffer.psbt)
+        : swapOffer.psbt;
 
     if (!swapOffer)
       throw new BadRequestException('Can not find that swap offer');
@@ -252,7 +258,7 @@ export class SwapOfferService {
     }
 
     await this.swapOfferRepository.update(
-      { psbt },
+      { uuid: swapOffer.uuid },
       {
         buyerSignedPsbt: signedPsbt,
         status: OfferStatus.SIGNED,
@@ -333,6 +339,8 @@ export class SwapOfferService {
         },
         { status: OfferStatus.FAILED },
       );
+
+      console.log('error', error);
 
       throw new BadRequestException(
         'Transaction failed to push, buyer should create a psbt again',

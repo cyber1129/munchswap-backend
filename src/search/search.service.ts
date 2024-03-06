@@ -59,7 +59,7 @@ export class SearchService {
   }
 
   async searchCollection(keyword: string) {
-    return this.collectionService.search(keyword);
+    return this.collectionService.search(decodeURI(keyword));
   }
 
   async searchInscription(inscriptionId: string) {

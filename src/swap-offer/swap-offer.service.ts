@@ -1240,12 +1240,15 @@ export class SwapOfferService {
       sellerTaprootsignIndexes.push(i);
     }
 
-    const psbt = this.psbtService.addTapInternalKey(
-      swapOffer.psbt,
-      sellerTaprootsignIndexes,
-      swapOffer.seller.pubkey,
-      swapOffer.seller.walletType,
-    );
+    let psbt;
+
+    if (swapOffer.seller.pubkey)
+      psbt = this.psbtService.addTapInternalKey(
+        swapOffer.psbt,
+        sellerTaprootsignIndexes,
+        swapOffer.seller.pubkey,
+        swapOffer.seller.walletType,
+      );
 
     return {
       sellerTaprootsignIndexes,

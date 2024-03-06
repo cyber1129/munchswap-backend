@@ -1101,7 +1101,7 @@ export class SwapOfferService {
           status: OfferStatus.PUSHED,
           sellerSwapInscription: {
             inscription: {
-              collectionId: And(LessThan(5), Not(1)),
+              collectionId: Not(1),
             },
           },
         },
@@ -1109,7 +1109,7 @@ export class SwapOfferService {
           status: OfferStatus.PUSHED,
           buyerSwapInscription: {
             inscription: {
-              collectionId: And(LessThan(5), Not(1)),
+              collectionId: Not(1),
             },
           },
         },

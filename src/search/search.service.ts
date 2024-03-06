@@ -39,7 +39,10 @@ export class SearchService {
   async search(keyWord: string) {
     const isAddress = validate(keyWord, this.network);
 
-    if (isAddress) {
+    if (
+      isAddress &&
+      (keyWord.startsWith('bc1p') || keyWord.startsWith('tbc1p'))
+    ) {
       const [inscription, collection, address] = await Promise.all([
         {},
         this.searchCollection(keyWord),

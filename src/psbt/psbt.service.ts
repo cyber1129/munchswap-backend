@@ -91,10 +91,10 @@ export class PsbtService {
     const buyerAddress = buyerInscriptionsWithUtxo[0].address;
     const sellerAddress = sellerInscriptionsWithUtxo[0].address;
 
-    if (buyerAddress === sellerAddress)
-      throw new BadRequestException(
-        'Cant create a swap using the same inscription',
-      );
+    // if (buyerAddress === sellerAddress)
+    //   throw new BadRequestException(
+    //     'Cant create a swap using the same inscription',
+    //   );
 
     const buyerScriptpubkey = Buffer.from(
       buyerInscriptionsWithUtxo[0].scriptpubkey,

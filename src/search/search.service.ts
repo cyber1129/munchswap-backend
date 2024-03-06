@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { validate, getAddressInfo } from 'bitcoin-address-validation';
 
 import { CollectionService } from '@src/collection/collection.service';
@@ -82,6 +82,9 @@ export class SearchService {
 
   async searchByAddress(address: string) {
     try {
+      if (address.startsWith('bc1p') || address.startsWith('tbc1p'))
+        throw new BadRequestException('The address should be taproot');
+
       const cachedData = await this.cacheService.get<any>(address);
       if (cachedData) return cachedData;
 

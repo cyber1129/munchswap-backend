@@ -708,12 +708,7 @@ export class SwapOfferService {
     await this.swapOfferRepository.update(
       {
         expiredAt: LessThan(new Date()),
-        status: In([
-          OfferStatus.CREATED,
-          OfferStatus.SIGNED,
-          OfferStatus.ACCEPTED,
-          OfferStatus.FAILED,
-        ]),
+        status: In([OfferStatus.CREATED, OfferStatus.SIGNED]),
       },
       {
         status: OfferStatus.EXPIRED,

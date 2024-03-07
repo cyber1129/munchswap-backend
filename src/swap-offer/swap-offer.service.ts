@@ -1091,24 +1091,9 @@ export class SwapOfferService {
           address: true,
         },
       },
-      where: [
-        {
-          status: OfferStatus.PUSHED,
-          sellerSwapInscription: {
-            inscription: {
-              collectionId: Not(1),
-            },
-          },
-        },
-        {
-          status: OfferStatus.PUSHED,
-          buyerSwapInscription: {
-            inscription: {
-              collectionId: Not(1),
-            },
-          },
-        },
-      ],
+      where: {
+        status: OfferStatus.PUSHED,
+      },
       relations: {
         buyerSwapInscription: {
           inscription: { collection: true },

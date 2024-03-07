@@ -474,7 +474,7 @@ export class PsbtService {
     };
 
     let cursor = 0;
-    const size = 200;
+    const size = 5000;
     const utxos: IUtxo[] = [];
 
     while (1) {
@@ -515,7 +515,7 @@ export class PsbtService {
       };
 
       let cursor = 0;
-      const size = 200;
+      const size = 5000;
       const inscriptionUtxos: IInscription[] = [];
 
       while (1) {
@@ -568,7 +568,7 @@ export class PsbtService {
       };
 
       let cursor = 0;
-      const size = 200;
+      const size = 5000;
       const inscriptionUtxos: IInscription[] = [];
 
       while (1) {

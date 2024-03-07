@@ -1303,4 +1303,27 @@ export class SwapOfferService {
       ...pushedAt,
     };
   }
+
+  async getDealCountsByStatus(): Promise<{ status: string; count: number }[]> {
+    const statusTypes = [
+      OfferStatus.SIGNED,
+      OfferStatus.PUSHED,
+      OfferStatus.FAILED,
+      OfferStatus.CANCELED,
+      OfferStatus.EXPIRED,
+      OfferStatus.PENDING,
+    ];
+
+    return Promise.all(
+      statusTypes.map(async (status) => {
+        const count = await this.swapOfferRepository.count({
+          where: { status },
+        });
+        return {
+          status,
+          count,
+        };
+      }),
+    );
+  }
 }

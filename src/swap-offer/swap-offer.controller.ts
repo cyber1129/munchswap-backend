@@ -26,6 +26,8 @@ import { GeneratePbst, PushTxResult, SignPsbtResult } from './swap-offer.type';
 import { SwapOffer } from './swap-offer.entity';
 import { GetOfferDto } from './dto/get-offer.dto';
 import { GetUserHistoryDto } from './dto/get-user-history.dto';
+import { RoleGuard } from '@src/auth/role/role.guard';
+import { Role } from '@src/auth/role/role.decorator';
 
 @Controller('swap-offer')
 export class SwapOfferController {
@@ -207,5 +209,16 @@ export class SwapOfferController {
   @Get('/uuid/:uuid')
   async getSwapofferById(@Param('uuid') uuid: string) {
     return this.swapOfferService.getSwapOfferById(uuid);
+  }
+
+  @ApiBearerAuth()
+  @Role('Admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @ApiOperation({ description: `Offer count by status`, tags: ['Swap offer'] })
+  @ApiResponse(ApiResponseHelper.success(PageDto<SwapOffer>, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Get('/offer-count')
+  async getSwapOfferCountByStatus() {
+    return this.swapOfferService.getDealCountsByStatus();
   }
 }

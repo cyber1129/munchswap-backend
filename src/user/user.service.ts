@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LoginUserDto } from '@src/auth/dto/login-user.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
+import { Not } from 'typeorm';
 
 @Injectable()
 export class UserService {
@@ -21,9 +22,9 @@ export class UserService {
       ...this.userRepository.create(body),
     };
 
-    if (isUpdate === true)
-    {  this.userRepository.update({ address: body.address }, userEntity);
-    return this.findByAddress(body.address)
+    if (isUpdate === true) {
+      this.userRepository.update({ address: body.address }, userEntity);
+      return this.findByAddress(body.address);
     }
 
     const user = await this.userRepository.save(userEntity, { reload: false });
@@ -62,5 +63,15 @@ export class UserService {
         address: user.address,
       };
     });
+  }
+
+  async getRegisteredUserCount(): Promise<Number> {
+    const count = await this.userRepository.count({
+      where: {
+        paymentPubkey: Not(""),
+      },
+    });
+
+    return count;
   }
 }

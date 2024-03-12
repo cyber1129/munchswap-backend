@@ -31,12 +31,21 @@ enum ActivityStatus {
 Table user {
   id integer [pk]
   uuid varchar
+  name varchar
+  avatar varchar
+  bio varchar
+  role Role
+}
+
+Table wallet {
+  id integer [pk]
+  uuid varchar
+  user_id integer [ref:> user.id]
   address varchar
   pubkey varchar
   paymentAddress varchar
   paymentPubkey varchar
   walletType WalletTypes
-  role Role
 }
 
 Table collection {
@@ -60,8 +69,8 @@ Table inscription {
 Table swap_offer {
   id integer [pk]
   uuid varchar
-  buyer_id int [ref: > user.id]
-  seller_id int [ref: > user.id]
+  buyer_id int [ref: > wallet.id]
+  seller_id int [ref: > wallet.id]
   price double
   status OfferStatus
   psbt varchar
@@ -90,4 +99,13 @@ Table sign_message {
   uuid varchar
   address varchar
   mesage varchar
+}
+
+Table point {
+  id integer [pk]
+  uuid varchar
+  user_id integer [ref:> user.id]
+  amout integer
+  swap_offer_id integer [ref:> swap_offer.id]
+  description varchar
 }

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SwapOffer } from '@src/swap-offer/swap-offer.entity';
+import { Wallet } from '@src/wallet/wallet.entity';
 import { Exclude } from 'class-transformer';
 import {
   CreateDateColumn,
@@ -10,13 +11,6 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-
-export enum WalletTypes {
-  UNISAT = 'Unisat',
-  XVERSE = 'Xverse',
-  HIRO = 'Hiro',
-  OKX = 'Okx',
-}
 
 export enum Role {
   CUSTOMER = 'Customer',
@@ -33,41 +27,12 @@ export class User {
   @Column({ type: 'varchar', nullable: false, length: 36 })
   uuid: string;
 
-  @ApiProperty({ description: 'Public key', maximum: 255, required: false })
-  @Column({
-    type: 'varchar',
-    nullable: true,
-    length: 255,
-  })
-  pubkey: string;
-
-  @ApiProperty({ description: 'Address', maximum: 255, required: false })
-  @Column({ type: 'varchar', nullable: false, length: 255 })
-  address: string;
-
-  @ApiProperty({
-    description: 'Payment Address',
-    maximum: 255,
-    required: false,
-  })
-  @Column({ type: 'varchar', nullable: true, length: 255, default: '' })
-  paymentAddress: string;
-
-  @ApiProperty({ description: 'Payment pubkey', maximum: 255, required: false })
-  @Column({
-    type: 'varchar',
-    nullable: true,
-    length: 255,
-  })
-  paymentPubkey: string;
-
-  @ApiProperty({ description: 'Wallet type', maximum: 255, required: false })
-  @Column({ type: 'enum', enum: WalletTypes, nullable: true })
-  walletType: WalletTypes;
-
   @ApiProperty({ description: 'Role', maximum: 255, required: false })
   @Column({ type: 'enum', enum: Role, nullable: false, default: Role.CUSTOMER })
   role: Role;
+
+  @OneToMany(() => Wallet, (wallet) => wallet.user)
+  wallet: Wallet[];
 
   @ApiProperty({
     description: 'Date when the user was created',
@@ -86,10 +51,4 @@ export class User {
   @Exclude({ toPlainOnly: true })
   @DeleteDateColumn()
   deletedAt: Date;
-
-  @OneToMany(() => SwapOffer, (swapOffer) => swapOffer.buyer)
-  buyerswapOffer: SwapOffer;
-
-  @OneToMany(() => SwapOffer, (swapOffer) => swapOffer.seller)
-  sellerswapOffer: SwapOffer;
 }

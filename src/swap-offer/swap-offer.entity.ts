@@ -13,6 +13,7 @@ import { Exclude } from 'class-transformer';
 import { BuyerSwapInscription } from './buyer-swap-inscription.entity';
 import { SellerSwapInscription } from './seller-swap-inscription.entity';
 import { User } from '@src/user/user.entity';
+import { Wallet } from '@src/wallet/wallet.entity';
 
 export enum OfferStatus {
   CREATED = 'created', // created the psbt
@@ -101,9 +102,9 @@ export class SwapOffer {
   )
   sellerSwapInscription: SellerSwapInscription[];
 
-  @ManyToOne(() => User, (user) => user.buyerswapOffer)
-  buyer: User;
+  @ManyToOne(() => Wallet, (user) => user.buyerswapOffer)
+  buyer: Wallet;
 
-  @ManyToOne(() => User, (user) => user.sellerswapOffer)
-  seller: User;
+  @ManyToOne(() => Wallet, (user) => user.sellerswapOffer)
+  seller: Wallet;
 }

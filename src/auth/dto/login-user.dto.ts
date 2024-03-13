@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { WalletTypes } from '@src/user/user.entity';
+import { WalletTypes } from '@src/wallet/wallet.entity';
 import { IsEnum, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class LoginUserDto {

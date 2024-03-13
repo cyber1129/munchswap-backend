@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { testnet, bitcoin, Network } from 'bitcoinjs-lib/src/networks';
 
-import { WalletTypes } from '@src/user/user.entity';
 import { InscriptionService } from '@src/inscription/inscription.service';
 import { PsbtService } from '@src/psbt/psbt.service';
 import { UserService } from '@src/user/user.service';
@@ -21,6 +20,7 @@ import { SellerSwapInscription } from './seller-swap-inscription.entity';
 import axios from 'axios';
 import { GetOfferDto } from './dto/get-offer.dto';
 import { GetUserHistoryDto } from './dto/get-user-history.dto';
+import { WalletTypes } from '@src/wallet/wallet.entity';
 
 @Injectable()
 export class SwapOfferService {

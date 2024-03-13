@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { WalletTypes } from '@src/wallet/wallet.entity';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -9,8 +10,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-
-import { WalletTypes } from '@src/user/user.entity';
 
 export class GenerateSwapPsbtDto {
   @ApiProperty({

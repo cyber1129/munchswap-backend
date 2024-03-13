@@ -112,7 +112,7 @@ export class InscriptionService {
 
     if (user) {
       inscriptionInfo['user'] = {
-        address: user.address,
+        address: 'user.address',
       };
     }
 

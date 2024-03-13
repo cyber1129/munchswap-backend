@@ -7,8 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { testnet, bitcoin } from 'bitcoinjs-lib/src/networks';
 
 import * as btc from '@scure/btc-signer';
-
-import { WalletTypes } from '@src/user/user.entity';
+import { WalletTypes } from '@src/wallet/wallet.entity';
 
 Bitcoin.initEccLib(ecc);
 

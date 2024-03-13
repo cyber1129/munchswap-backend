@@ -60,29 +60,31 @@ export class AuthService {
       throw new BadRequestException('The signature is invalid');
     }
 
-    const user = await this.userService.findByAddress(body.address);
-    if (user && user.paymentPubkey !== null)
-      return {
-        address: user.address,
-        uuid: user.uuid,
-        role: user.role,
-      };
+    // const user = await this.userService.findByAddress(body.address);
+    // if (user && user.paymentPubkey !== null)
+    //   return {
+    //     address: user.address,
+    //     uuid: user.uuid,
+    //     role: user.role,
+    //   };
 
-    let savedUser;
+    // let savedUser;
 
-    if (user) savedUser = await this.userService.create(body, true);
-    else savedUser = await this.userService.create(body);
+    // if (user) savedUser = await this.userService.create(body, true);
+    // else savedUser = await this.userService.create(body);
 
-    return {
-      address: savedUser.address,
-      uuid: savedUser.uuid,
-      role: savedUser.role,
-    };
+    // return {
+    //   address: savedUser.address,
+    //   uuid: savedUser.uuid,
+    //   role: savedUser.role,
+    // };
+
+    return null;
   }
 
   async createAccessToken(user: Partial<User>): Promise<string> {
     const payload: AccessTokenInterface = {
-      address: user.address,
+      address: 'user.address',
       uuid: user.uuid,
       role: user.role,
     };

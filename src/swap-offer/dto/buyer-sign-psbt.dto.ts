@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { WalletTypes } from '@src/wallet/wallet.entity';
 import {
   IsEnum,
   IsOptional,
@@ -6,9 +7,6 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-
-import { WalletTypes } from '@src/user/user.entity';
-
 export class BuyerSignPsbtDto {
   @ApiProperty({
     example: '2c96d4c9-8a7d-48b9-881d-584b92ba13c2',

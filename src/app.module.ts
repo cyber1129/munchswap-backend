@@ -23,6 +23,8 @@ import { FileModule } from './file/file.module';
 import { SearchModule } from './search/search.module';
 import fileConfig from './config/file.config';
 import { CacheModule } from '@nestjs/cache-manager';
+import { WalletModule } from './wallet/wallet.module';
+import { PointModule } from './point/point.module';
 import * as redisStore from 'cache-manager-redis-store';
 import redisConfig from './config/redis.config';
 
@@ -79,6 +81,8 @@ EnvHelper.verifyNodeEnv();
     SwapOfferModule,
     FileModule,
     SearchModule,
+    WalletModule,
+    PointModule,
   ],
   controllers: [AppController],
   providers: [InscriptionService],

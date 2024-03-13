@@ -27,6 +27,14 @@ export class User {
   @Column({ type: 'varchar', nullable: false, length: 36 })
   uuid: string;
 
+  @ApiProperty({ description: `Name`, maximum: 36 })
+  @Column({ type: 'varchar', nullable: true, length: 36 })
+  name: string;
+
+  @ApiProperty({ description: `Avatar inscription url`, maximum: 36 })
+  @Column({ type: 'varchar', nullable: true, length: 36 })
+  avatar: string;
+
   @ApiProperty({ description: 'Role', maximum: 255, required: false })
   @Column({ type: 'enum', enum: Role, nullable: false, default: Role.CUSTOMER })
   role: Role;

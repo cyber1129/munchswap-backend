@@ -14,6 +14,7 @@ import { AccessTokenInterface } from './auth.type';
 import { LoginUserDto } from './dto/login-user.dto';
 import { SignMessageRepository } from './sign-message.repository';
 import { ConfigService } from '@nestjs/config';
+import { WalletService } from '@src/wallet/wallet.service';
 
 @Injectable()
 export class AuthService {
@@ -25,11 +26,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly signMessageRepository: SignMessageRepository,
     private readonly configService: ConfigService,
+    private readonly walletService: WalletService,
   ) {
     this.network = this.configService.get('psbtConfig.network');
   }
 
-  async login(user: Partial<User>) {
+  async login(user: AccessTokenInterface) {
     const accessToken = await this.createAccessToken(user);
 
     return {
@@ -37,7 +39,7 @@ export class AuthService {
     };
   }
 
-  async validateUser(body: LoginUserDto): Promise<Partial<User> | null> {
+  async validateUser(body: LoginUserDto): Promise<AccessTokenInterface | null> {
     if (this.network === 'mainnet' && !body.address.startsWith('bc1p'))
       throw new BadRequestException('Wrong network');
     if (this.network !== 'mainnet' && !body.address.startsWith('tb1p'))
@@ -60,13 +62,13 @@ export class AuthService {
       throw new BadRequestException('The signature is invalid');
     }
 
-    // const user = await this.userService.findByAddress(body.address);
-    // if (user && user.paymentPubkey !== null)
-    //   return {
-    //     address: user.address,
-    //     uuid: user.uuid,
-    //     role: user.role,
-    //   };
+    const user = await this.userService.findByAddress(body.address);
+    if (user && user.wallet[0].paymentPubkey !== null)
+      return {
+        address: user.wallet[0].address,
+        uuid: user.uuid,
+        role: user.role,
+      };
 
     // let savedUser;
 
@@ -82,7 +84,7 @@ export class AuthService {
     return null;
   }
 
-  async createAccessToken(user: Partial<User>): Promise<string> {
+  async createAccessToken(user: AccessTokenInterface): Promise<string> {
     const payload: AccessTokenInterface = {
       address: 'user.address',
       uuid: user.uuid,

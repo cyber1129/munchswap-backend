@@ -14,10 +14,23 @@ export class WalletService {
   async createWalletWithAddress(address: string): Promise<Wallet> {
     const walletEntity = this.walletRepository.create({ address });
 
-      const wallet = await this.walletRepository.save(walletEntity, {
-        reload: false,
-      });
+    const wallet = await this.walletRepository.save(walletEntity, {
+      reload: false,
+    });
 
-      return this.walletRepository.findOne({where: {uuid: wallet.uuid}});
+    return this.walletRepository.findOne({ where: { uuid: wallet.uuid } });
+  }
+
+  async createWallet(body: Partial<Wallet>): Promise<Wallet> {
+    const walletEntity = this.walletRepository.create(body);
+    const savedWallet = await this.walletRepository.save(walletEntity, {
+      reload: false,
+    });
+
+    return this.findByUuid(savedWallet.uuid);
+  }
+
+  async findByUuid(uuid: string): Promise<Wallet> {
+    return this.walletRepository.findOne({ where: { uuid } });
   }
 }

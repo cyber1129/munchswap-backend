@@ -4,22 +4,33 @@ import { LoginUserDto } from '@src/auth/dto/login-user.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { Not } from 'typeorm';
+import { Wallet } from '@src/wallet/wallet.entity';
+import { WalletService } from '@src/wallet/wallet.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly walletService: WalletService,
+  ) {}
 
   async findByAddress(address: string): Promise<User> {
-    return this.userRepository.findOne({ where: { wallet: { address } } });
+    return this.userRepository.findOne({
+      where: { wallet: { address } },
+      relations: { wallet: true },
+    });
   }
 
   async findByUuid(uuid: string): Promise<User> {
-    return this.userRepository.findOne({ where: { uuid } });
+    return this.userRepository.findOne({
+      where: { uuid },
+      relations: { wallet: true },
+    });
   }
 
   async create(body: LoginUserDto, isUpdate?: boolean): Promise<User> {
     const userEntity: Partial<User> = {
-      ...this.userRepository.create({}),
+      ...this.userRepository.create({ name: body.address }),
     };
 
     if (isUpdate === true) {
@@ -27,20 +38,21 @@ export class UserService {
       return this.findByAddress(body.address);
     }
 
-    const user = await this.userRepository.save(userEntity, { reload: false });
+    const user = await this.userRepository.save(userEntity, { reload: true });
+
+    const wallet: Partial<Wallet> = {
+      address: body.address,
+      pubkey: body.pubkey,
+      walletType: body.walletType,
+      paymentAddress: body.paymentAddress,
+      paymentPubkey: body.paymentPubkey,
+      user,
+    };
+
+    await this.walletService.createWallet(wallet);
 
     return this.findByUuid(user.uuid);
   }
-
-  // async createWithAddress(address: string): Promise<User> {
-  //   const userEntity: Partial<User> = {
-  //     address,
-  //   };
-
-  //   const user = await this.userRepository.save(userEntity, { reload: false });
-
-  //   return this.findByUuid(user.uuid);
-  // }
 
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });

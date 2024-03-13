@@ -9,9 +9,11 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { SignMessageRepository } from './sign-message.repository';
+import { WalletModule } from '@src/wallet/wallet.module';
 
 @Module({
   imports: [
+    WalletModule,
     forwardRef(() => UserModule),
     PassportModule,
     JwtModule.registerAsync({

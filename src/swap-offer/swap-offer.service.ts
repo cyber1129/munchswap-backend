@@ -21,6 +21,7 @@ import axios from 'axios';
 import { GetOfferDto } from './dto/get-offer.dto';
 import { GetUserHistoryDto } from './dto/get-user-history.dto';
 import { WalletTypes } from '@src/wallet/wallet.entity';
+import { WalletService } from '@src/wallet/wallet.service';
 
 @Injectable()
 export class SwapOfferService {
@@ -34,6 +35,7 @@ export class SwapOfferService {
     private userService: UserService,
     private inscriptionService: InscriptionService,
     private configService: ConfigService,
+    private walletService: WalletService,
   ) {
     const networkType = this.configService.get('psbtConfig.network');
 
@@ -56,7 +58,7 @@ export class SwapOfferService {
     price?: number;
     expiredIn: string;
   }) {
-    const user = await this.userService.findByAddress(address);
+    const wallet = await this.walletService.findByAddress(address);
 
     const {
       psbt,
@@ -65,12 +67,12 @@ export class SwapOfferService {
       buyerPaymentsignIndexes,
       buyerTaprootsignIndexes,
     } = await this.psbtService.generateSwapPsbt({
-      walletType: user.walletType,
+      walletType: wallet.walletType,
       sellerInscriptionIds,
       buyerInscriptionIds,
       price: Math.floor(price * 10 ** 8),
-      paymentPubkey: user.paymentPubkey,
-      pubkey: user.pubkey,
+      paymentPubkey: wallet.paymentPubkey,
+      pubkey: wallet.pubkey,
     });
 
     if (address !== buyerAddress)
@@ -79,13 +81,14 @@ export class SwapOfferService {
       );
 
     let [buyer, seller] = await Promise.all([
-      this.userService.findByAddress(buyerAddress),
-      this.userService.findByAddress(sellerAddress),
+      this.walletService.findByAddress(buyerAddress),
+      this.walletService.findByAddress(sellerAddress),
     ]);
 
-    if (!buyer) buyer = await this.userService.createWithAddress(buyerAddress);
+    if (!buyer)
+      buyer = await this.walletService.createWalletWithAddress(buyerAddress);
     if (!seller)
-      seller = await this.userService.createWithAddress(sellerAddress);
+      seller = await this.walletService.createWalletWithAddress(sellerAddress);
 
     const [buyerInscriptions, sellerInscriptions] = await Promise.all([
       this.inscriptionService.findInscriptionAndSave(buyerInscriptionIds),
@@ -209,10 +212,10 @@ export class SwapOfferService {
     body: BuyerSignPsbtDto,
     userAddress: string,
   ): Promise<string> {
-    const user = await this.userService.findByAddress(userAddress);
+    const wallet = await this.walletService.findByAddress(userAddress);
 
     const swapOffer = await this.swapOfferRepository.findOne({
-      where: { uuid: body.offerId, buyer: { id: user.id } },
+      where: { uuid: body.offerId, buyer: { id: wallet.id } },
       relations: {
         buyerSwapInscription: true,
         sellerSwapInscription: true,
@@ -220,7 +223,7 @@ export class SwapOfferService {
     });
 
     const psbt =
-      user.walletType === WalletTypes.XVERSE
+      wallet.walletType === WalletTypes.XVERSE
         ? this.psbtService.convertBase64ToHexed(swapOffer.psbt)
         : swapOffer.psbt;
 
@@ -228,7 +231,7 @@ export class SwapOfferService {
       throw new BadRequestException('Can not find that swap offer');
 
     let signedPsbt =
-      user.walletType === WalletTypes.XVERSE
+      wallet.walletType === WalletTypes.XVERSE
         ? this.psbtService.convertBase64ToHexed(body.signedPsbt)
         : body.signedPsbt;
 
@@ -250,7 +253,7 @@ export class SwapOfferService {
       buyerPaymentsignIndexes.push(i);
     }
 
-    if (user.walletType === WalletTypes.XVERSE) {
+    if (wallet.walletType === WalletTypes.XVERSE) {
       signedPsbt = this.psbtService.finalizePsbtInput(signedPsbt, [
         ...buyerPaymentsignIndexes,
         ...buyerTaprootsignIndexes,
@@ -272,7 +275,7 @@ export class SwapOfferService {
     body: SellerSignPsbtDto,
     userAddress: string,
   ): Promise<string> {
-    const seller = await this.userService.findByAddress(userAddress);
+    const seller = await this.walletService.findByAddress(userAddress);
 
     const swapOffer = await this.swapOfferRepository.findOne({
       where: {
@@ -349,7 +352,7 @@ export class SwapOfferService {
   }
 
   async getUserSendingOffers(ownerAddress: string, getOfferDto: GetOfferDto) {
-    const user = await this.userService.findByAddress(ownerAddress);
+    const user = await this.walletService.findByAddress(ownerAddress);
 
     const [swapOfferIds, itemCount] =
       await this.swapOfferRepository.findAndCount({
@@ -462,7 +465,7 @@ export class SwapOfferService {
   }
 
   async getUserGettingOffers(ownerAddress: string, getOfferDto: GetOfferDto) {
-    const user = await this.userService.findByAddress(ownerAddress);
+    const user = await this.walletService.findByAddress(ownerAddress);
 
     const [swapOfferIds, itemCount] =
       await this.swapOfferRepository.findAndCount({

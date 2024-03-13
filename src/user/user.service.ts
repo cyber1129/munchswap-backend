@@ -10,7 +10,7 @@ export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
   async findByAddress(address: string): Promise<User> {
-    return this.userRepository.findOne({ where: { address } });
+    return this.userRepository.findOne({ where: { wallet: { address } } });
   }
 
   async findByUuid(uuid: string): Promise<User> {
@@ -19,11 +19,11 @@ export class UserService {
 
   async create(body: LoginUserDto, isUpdate?: boolean): Promise<User> {
     const userEntity: Partial<User> = {
-      ...this.userRepository.create(body),
+      ...this.userRepository.create({}),
     };
 
     if (isUpdate === true) {
-      this.userRepository.update({ address: body.address }, userEntity);
+      this.userRepository.update({}, userEntity);
       return this.findByAddress(body.address);
     }
 
@@ -32,43 +32,24 @@ export class UserService {
     return this.findByUuid(user.uuid);
   }
 
-  async createWithAddress(address: string): Promise<User> {
-    const userEntity: Partial<User> = {
-      address,
-    };
+  // async createWithAddress(address: string): Promise<User> {
+  //   const userEntity: Partial<User> = {
+  //     address,
+  //   };
 
-    const user = await this.userRepository.save(userEntity, { reload: false });
+  //   const user = await this.userRepository.save(userEntity, { reload: false });
 
-    return this.findByUuid(user.uuid);
-  }
+  //   return this.findByUuid(user.uuid);
+  // }
 
   async findOne(id: number): Promise<User> {
     return this.userRepository.findOne({ where: { id } });
   }
 
-  async search(keyWord: string): Promise<Partial<User>[]> {
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .where('LOWER(name) LIKE LOWER(:search)', {
-        search: `%${keyWord}%`,
-      })
-      .orWhere('LOWER(address) LIKE LOWER(:search)', {
-        search: `%${keyWord}%`,
-      })
-      .orderBy('updated_at', 'DESC')
-      .getRawAndEntities();
-
-    return users.entities.map((user) => {
-      return {
-        address: user.address,
-      };
-    });
-  }
-
   async getRegisteredUserCount(): Promise<Number> {
     const count = await this.userRepository.count({
       where: {
-        paymentPubkey: Not(""),
+        wallet: { paymentPubkey: Not('') },
       },
     });
 

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { LoginUserDto } from '@src/auth/dto/login-user.dto';
 import { User } from './user.entity';

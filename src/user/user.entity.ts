@@ -27,12 +27,12 @@ export class User {
   @Column({ type: 'varchar', nullable: false, length: 36 })
   uuid: string;
 
-  @ApiProperty({ description: `Name`, maximum: 36 })
-  @Column({ type: 'varchar', nullable: true, length: 36 })
+  @ApiProperty({ description: `Name`, maximum: 100 })
+  @Column({ type: 'varchar', nullable: true, length: 100 })
   name: string;
 
-  @ApiProperty({ description: `Avatar inscription url`, maximum: 36 })
-  @Column({ type: 'varchar', nullable: true, length: 36 })
+  @ApiProperty({ description: `Avatar inscription url`, maximum: 100 })
+  @Column({ type: 'varchar', nullable: true, length: 100 })
   avatar: string;
 
   @ApiProperty({ description: 'Role', maximum: 255, required: false })

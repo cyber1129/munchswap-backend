@@ -63,23 +63,20 @@ export class AuthService {
     }
 
     const user = await this.userService.findByAddress(body.address);
-    if (user && user.wallet[0].paymentPubkey !== null)
+    if (user)
       return {
-        address: user.wallet[0].address,
+        address: body.address,
         uuid: user.uuid,
         role: user.role,
       };
 
-    // let savedUser;
+    const savedUser = await this.userService.create(body);
 
-    // if (user) savedUser = await this.userService.create(body, true);
-    // else savedUser = await this.userService.create(body);
-
-    // return {
-    //   address: savedUser.address,
-    //   uuid: savedUser.uuid,
-    //   role: savedUser.role,
-    // };
+    return {
+      address: body.address,
+      uuid: savedUser.uuid,
+      role: savedUser.role,
+    };
 
     return null;
   }

@@ -139,9 +139,9 @@ export class AuthService {
     const accessToken: AccessTokenInterface = {
       address: body.address,
       role: user.role,
-      uuid: user.uuid
-    }
+      uuid: user.uuid,
+    };
 
-    return this.createAccessToken(accessToken)
+    return this.createAccessToken(accessToken);
   }
 }

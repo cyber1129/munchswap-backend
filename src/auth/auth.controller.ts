@@ -1,11 +1,19 @@
-import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { AuthService } from '@src/auth/auth.service';
 import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { LoginUserDto } from './dto/login-user.dto';
 import { GetSignMessageDto } from './dto/get-sign-message.dto';
 import { AccessToken, GenerateMessage } from './auth.type';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -19,6 +27,20 @@ export class AuthController {
     const user = await this.authService.validateUser(body);
     const authData = await this.authService.login(user);
     return { accessToken: authData.accessToken };
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description: `Add wallet`, tags: ['Auth'] })
+  @ApiResponse(ApiResponseHelper.success(AccessToken, HttpStatus.CREATED))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('/add-wallet')
+  async addWallet(
+    @Body() body: LoginUserDto,
+    @Request() req,
+  ): Promise<AccessToken> {
+    const accessToken = await this.authService.addWallet(body, req.user.uuod);
+    return { accessToken };
   }
 
   @ApiOperation({

@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 
 import { LoginUserDto } from '@src/auth/dto/login-user.dto';
 import { User } from './user.entity';
@@ -6,6 +11,8 @@ import { UserRepository } from './user.repository';
 import { Not } from 'typeorm';
 import { Wallet } from '@src/wallet/wallet.entity';
 import { WalletService } from '@src/wallet/wallet.service';
+import { AuthService } from '@src/auth/auth.service';
+import { AccessTokenInterface } from '@src/auth/auth.type';
 
 @Injectable()
 export class UserService {
@@ -66,5 +73,21 @@ export class UserService {
     });
 
     return count;
+  }
+
+  async addWallet(
+    body: LoginUserDto,
+    user: User | undefined,
+  ): Promise<Wallet> {
+    const wallet: Partial<Wallet> = {
+      address: body.address,
+      pubkey: body.pubkey,
+      walletType: body.walletType,
+      paymentAddress: body.paymentAddress,
+      paymentPubkey: body.paymentPubkey,
+      user,
+    };
+
+    return this.walletService.createWallet(wallet);
   }
 }

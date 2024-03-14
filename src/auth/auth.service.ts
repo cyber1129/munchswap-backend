@@ -39,28 +39,33 @@ export class AuthService {
     };
   }
 
-  async validateUser(body: LoginUserDto): Promise<AccessTokenInterface | null> {
-    if (this.network === 'mainnet' && !body.address.startsWith('bc1p'))
+  async validateSignature(
+    address: string,
+    signature: string,
+  ): Promise<boolean> {
+    if (this.network === 'mainnet' && !address.startsWith('bc1p'))
       throw new BadRequestException('Wrong network');
-    if (this.network !== 'mainnet' && !body.address.startsWith('tb1p'))
+    if (this.network !== 'mainnet' && !address.startsWith('tb1p'))
       throw new BadRequestException('Wrong network');
 
-    const message = await this.getSignMessage(body.address);
+    const message = await this.getSignMessage(address);
 
-    await this.generateSignMessage(body.address);
+    await this.generateSignMessage(address);
 
     try {
-      const validity = Verifier.verifySignature(
-        body.address,
-        message,
-        body.signature,
-      );
+      const validity = Verifier.verifySignature(address, message, signature);
 
-      if (validity === false)
-        throw new BadRequestException('The signature is invalid');
+      return validity;
     } catch (error) {
       throw new BadRequestException('The signature is invalid');
     }
+  }
+
+  async validateUser(body: LoginUserDto): Promise<AccessTokenInterface | null> {
+    const validity = await this.validateSignature(body.address, body.signature);
+
+    if (validity === false)
+      throw new BadRequestException('The signature is invalid');
 
     const user = await this.userService.findByAddress(body.address);
     if (user)
@@ -77,13 +82,11 @@ export class AuthService {
       uuid: savedUser.uuid,
       role: savedUser.role,
     };
-
-    return null;
   }
 
   async createAccessToken(user: AccessTokenInterface): Promise<string> {
     const payload: AccessTokenInterface = {
-      address: 'user.address',
+      address: user.address,
       uuid: user.uuid,
       role: user.role,
     };
@@ -116,5 +119,29 @@ export class AuthService {
       throw new BadRequestException('Can not find sign message');
 
     return signMessage.message;
+  }
+
+  async addWallet(
+    body: LoginUserDto,
+    uuid: string | undefined,
+  ): Promise<string> {
+    const validity = await this.validateSignature(body.address, body.signature);
+
+    if (validity === false)
+      throw new BadRequestException('The signature is invalid');
+
+    const user = await this.userService.findByUuid(uuid);
+
+    if (!user) throw new BadRequestException('Can not find registered user');
+
+    await this.userService.addWallet(body, user);
+
+    const accessToken: AccessTokenInterface = {
+      address: body.address,
+      role: user.role,
+      uuid: user.uuid
+    }
+
+    return this.createAccessToken(accessToken)
   }
 }

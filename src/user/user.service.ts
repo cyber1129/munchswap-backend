@@ -75,10 +75,14 @@ export class UserService {
     return count;
   }
 
-  async addWallet(
-    body: LoginUserDto,
-    user: User | undefined,
-  ): Promise<Wallet> {
+  async addWallet(body: LoginUserDto, user: User | undefined): Promise<Wallet> {
+    const registeredWallet = await this.walletService.findByAddress(
+      body.address,
+    );
+
+    if (registeredWallet)
+      throw new BadRequestException('The wallet address is already registered');
+
     const wallet: Partial<Wallet> = {
       address: body.address,
       pubkey: body.pubkey,

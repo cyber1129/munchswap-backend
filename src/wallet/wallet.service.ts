@@ -33,4 +33,10 @@ export class WalletService {
   async findByUuid(uuid: string): Promise<Wallet> {
     return this.walletRepository.findOne({ where: { uuid } });
   }
+
+  async updateWallet(body: Partial<Wallet>, walletId: number): Promise<Wallet> {
+    await this.walletRepository.update({ id: walletId }, body);
+
+    return this.findByAddress(body.address);
+  }
 }

@@ -40,7 +40,9 @@ export class UserService {
 
     const user = await this.userRepository.save(userEntity, { reload: true });
 
-    const wallet: Partial<Wallet> = {
+    const wallet = await this.walletService.findByAddress(body.address);
+
+    const walletEntity: Partial<Wallet> = {
       address: body.address,
       pubkey: body.pubkey,
       walletType: body.walletType,
@@ -49,8 +51,11 @@ export class UserService {
       user,
     };
 
-    await this.walletService.createWallet(wallet);
-
+    if (wallet) {
+      await this.walletService.updateWallet(walletEntity, wallet.id);
+    } else {
+      await this.walletService.createWallet(walletEntity);
+    }
     return this.findByUuid(user.uuid);
   }
 

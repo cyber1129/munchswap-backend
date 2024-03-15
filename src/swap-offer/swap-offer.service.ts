@@ -362,21 +362,21 @@ export class SwapOfferService {
         },
         where: [
           {
-            buyer: { id: user.id },
+            buyer: { user: { id: user.id } },
             status: OfferStatus.SIGNED,
             buyerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
           },
           {
-            buyer: { id: user.id },
+            buyer: { user: { id: user.id } },
             status: OfferStatus.SIGNED,
             sellerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
           },
           {
-            buyer: { id: user.id },
+            buyer: { user: { id: user.id } },
             status: OfferStatus.SIGNED,
             seller: { address: getOfferDto.keyword },
           },
@@ -384,8 +384,8 @@ export class SwapOfferService {
         relations: {
           buyerSwapInscription: { inscription: true },
           sellerSwapInscription: { inscription: true },
-          buyer: true,
-          seller: true,
+          buyer: { user: true },
+          seller: { user: true },
         },
         skip: getOfferDto.skip ?? (getOfferDto.page - 1) * getOfferDto.take,
         take: getOfferDto.take,
@@ -395,19 +395,14 @@ export class SwapOfferService {
       });
 
     const swapOffers = await this.swapOfferRepository.find({
-      select: {
-        buyer: {
-          address: true,
-        },
-      },
       where: {
         id: In(swapOfferIds.map((inscription) => inscription.id)),
       },
       relations: {
         buyerSwapInscription: { inscription: true },
         sellerSwapInscription: { inscription: true },
-        buyer: true,
-        seller: true,
+        buyer: { user: true },
+        seller: { user: true },
       },
     });
 
@@ -464,6 +459,7 @@ export class SwapOfferService {
 
   async getUserGettingOffers(userUuid: string, getOfferDto: GetOfferDto) {
     const user = await this.userService.findByUuid(userUuid);
+    console.log('user', user);
 
     const [swapOfferIds, itemCount] =
       await this.swapOfferRepository.findAndCount({
@@ -473,21 +469,21 @@ export class SwapOfferService {
         },
         where: [
           {
-            seller: { id: user.id },
+            seller: { user: { id: user.id } },
             status: OfferStatus.SIGNED,
             buyerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
           },
           {
-            seller: { id: user.id },
+            seller: { user: { id: user.id } },
             status: OfferStatus.SIGNED,
             sellerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
           },
           {
-            seller: { id: user.id },
+            seller: { user: { id: user.id } },
             status: OfferStatus.SIGNED,
             buyer: { address: getOfferDto.keyword },
           },
@@ -517,8 +513,8 @@ export class SwapOfferService {
       relations: {
         buyerSwapInscription: { inscription: true },
         sellerSwapInscription: { inscription: true },
-        buyer: true,
-        seller: true,
+        buyer: { user: true },
+        seller: { user: true },
       },
     });
 
@@ -578,7 +574,7 @@ export class SwapOfferService {
         ),
       };
     });
-    
+
     const pageMetaDto = new PageMetaDto({
       itemCount,
       pageOptionsDto: {
@@ -646,8 +642,8 @@ export class SwapOfferService {
       relations: {
         buyerSwapInscription: { inscription: true },
         sellerSwapInscription: { inscription: true },
-        buyer: true,
-        seller: true,
+        buyer: { user: true },
+        seller: { user: true },
       },
       skip: getOfferDto.skip ?? (getOfferDto.page - 1) * getOfferDto.take,
       take: getOfferDto.take,

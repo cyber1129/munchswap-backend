@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Point } from '@src/point/point.entity';
 import { SwapOffer } from '@src/swap-offer/swap-offer.entity';
 import { Wallet } from '@src/wallet/wallet.entity';
 import { Exclude } from 'class-transformer';
@@ -41,6 +42,9 @@ export class User {
 
   @OneToMany(() => Wallet, (wallet) => wallet.user)
   wallet: Wallet[];
+
+  @OneToMany(() => Point, (point) => point.user)
+  point: Point[];
 
   @ApiProperty({
     description: 'Date when the user was created',

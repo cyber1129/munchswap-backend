@@ -14,6 +14,7 @@ import { BuyerSwapInscription } from './buyer-swap-inscription.entity';
 import { SellerSwapInscription } from './seller-swap-inscription.entity';
 import { User } from '@src/user/user.entity';
 import { Wallet } from '@src/wallet/wallet.entity';
+import { Point } from '@src/point/point.entity';
 
 export enum OfferStatus {
   CREATED = 'created', // created the psbt
@@ -101,6 +102,9 @@ export class SwapOffer {
     (sellerSwapInscription) => sellerSwapInscription.swapOffer,
   )
   sellerSwapInscription: SellerSwapInscription[];
+
+  @OneToMany(() => Point, (point) => point.swapOffer)
+  point: Point[];
 
   @ManyToOne(() => Wallet, (user) => user.buyerswapOffer)
   buyer: Wallet;

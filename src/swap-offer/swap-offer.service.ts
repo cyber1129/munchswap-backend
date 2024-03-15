@@ -351,8 +351,8 @@ export class SwapOfferService {
     }
   }
 
-  async getUserSendingOffers(ownerAddress: string, getOfferDto: GetOfferDto) {
-    const user = await this.walletService.findByAddress(ownerAddress);
+  async getUserSendingOffers(userUuid: string, getOfferDto: GetOfferDto) {
+    const user = await this.userService.findByUuid(userUuid);
 
     const [swapOfferIds, itemCount] =
       await this.swapOfferRepository.findAndCount({
@@ -428,7 +428,10 @@ export class SwapOfferService {
     const entities = swapOffers.map((swapOffer) => {
       return {
         price: swapOffer.price,
-        psbt: swapOffer.psbt,
+        psbt:
+          swapOffer.seller.walletType === WalletTypes.XVERSE
+            ? this.psbtService.convertHexedToBase64(swapOffer.psbt)
+            : swapOffer.psbt,
         txId: swapOffer.txId,
         buyer: swapOffer.buyer,
         seller: swapOffer.seller,
@@ -446,11 +449,6 @@ export class SwapOfferService {
       };
     });
 
-    if (user.walletType === WalletTypes.XVERSE)
-      entities.forEach((offer) => {
-        offer.psbt = this.psbtService.convertHexedToBase64(offer.psbt);
-      });
-
     const pageMetaDto = new PageMetaDto({
       itemCount,
       pageOptionsDto: {
@@ -464,8 +462,8 @@ export class SwapOfferService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async getUserGettingOffers(ownerAddress: string, getOfferDto: GetOfferDto) {
-    const user = await this.walletService.findByAddress(ownerAddress);
+  async getUserGettingOffers(userUuid: string, getOfferDto: GetOfferDto) {
+    const user = await this.userService.findByUuid(userUuid);
 
     const [swapOfferIds, itemCount] =
       await this.swapOfferRepository.findAndCount({
@@ -550,15 +548,20 @@ export class SwapOfferService {
         sellerTaprootsignIndexes.push(i);
       }
 
+      const psbt = this.psbtService.addTapInternalKey(
+        swapOffer.psbt,
+        sellerTaprootsignIndexes,
+        swapOffer.seller.pubkey,
+        swapOffer.seller.walletType,
+      );
+
       return {
         sellerTaprootsignIndexes,
         price: swapOffer.price,
-        psbt: this.psbtService.addTapInternalKey(
-          swapOffer.psbt,
-          sellerTaprootsignIndexes,
-          user.pubkey,
-          user.walletType,
-        ),
+        psbt:
+          swapOffer.seller.walletType === WalletTypes.XVERSE
+            ? this.psbtService.convertHexedToBase64(psbt)
+            : psbt,
         txId: swapOffer.txId,
         buyer: swapOffer.buyer,
         seller: swapOffer.seller,
@@ -575,12 +578,7 @@ export class SwapOfferService {
         ),
       };
     });
-
-    if (user.walletType === WalletTypes.XVERSE)
-      entities.forEach((offer) => {
-        offer.psbt = this.psbtService.convertHexedToBase64(offer.psbt);
-      });
-
+    
     const pageMetaDto = new PageMetaDto({
       itemCount,
       pageOptionsDto: {

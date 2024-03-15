@@ -139,7 +139,7 @@ export class SwapOfferController {
     @Query() getOfferDto: GetOfferDto,
   ) {
     return this.swapOfferService.getUserSendingOffers(
-      req.user.address,
+      req.user.uuid,
       getOfferDto,
     );
   }
@@ -155,7 +155,7 @@ export class SwapOfferController {
     @Query() getOfferDto: GetOfferDto,
   ) {
     return this.swapOfferService.getUserGettingOffers(
-      req.user.address,
+      req.user.uuid,
       getOfferDto,
     );
   }

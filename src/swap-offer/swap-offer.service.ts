@@ -767,7 +767,7 @@ export class SwapOfferService {
         where: [
           {
             seller: {
-              id: user.id,
+              user: { id: user.id },
             },
             status: In(status),
             buyerSwapInscription: {
@@ -776,7 +776,7 @@ export class SwapOfferService {
           },
           {
             buyer: {
-              id: user.id,
+              user: { id: user.id },
             },
             status: In(status),
             buyerSwapInscription: {
@@ -784,14 +784,18 @@ export class SwapOfferService {
             },
           },
           {
-            seller: { id: user.id },
+            seller: {
+              user: { id: user.id },
+            },
             status: In(status),
             sellerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
             },
           },
           {
-            buyer: { id: user.id },
+            buyer: {
+              user: { id: user.id },
+            },
             status: In(status),
             sellerSwapInscription: {
               inscription: { inscriptionId: getOfferDto.keyword },
@@ -799,14 +803,14 @@ export class SwapOfferService {
           },
           {
             seller: {
-              id: user.id,
+              user: { id: user.id },
             },
             status: In(status),
             buyer: { address: getOfferDto.keyword },
           },
           {
             buyer: {
-              id: user.id,
+              user: { id: user.id },
             },
             status: In(status),
             seller: { address: getOfferDto.keyword },

@@ -41,7 +41,7 @@ export class SearchService {
 
     if (
       isAddress &&
-      (keyWord.startsWith('bc1p') || keyWord.startsWith('tbc1p'))
+      (keyWord.startsWith('bc1p') || keyWord.startsWith('tb1p'))
     ) {
       const [inscription, collection, address] = await Promise.all([
         {},
@@ -85,7 +85,7 @@ export class SearchService {
 
   async searchByAddress(address: string) {
     try {
-      if (!(address.startsWith('bc1p') || address.startsWith('tbc1p')))
+      if (!(address.startsWith('bc1p') || address.startsWith('tb1p')))
         throw new BadRequestException('The address should be taproot');
 
       const cachedData = await this.cacheService.get<any>(address);
@@ -94,6 +94,8 @@ export class SearchService {
       const inscriptions = await this.psbtService.getInscriptionByAddress(
         address,
       );
+
+      console.log('inscriptions', inscriptions);
 
       const allowInscriptions = inscriptions.filter((inscription) =>
         AllowedContentTypes.find(

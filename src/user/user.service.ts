@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  forwardRef,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, forwardRef } from '@nestjs/common';
 
 import { LoginUserDto } from '@src/auth/dto/login-user.dto';
 import { User } from './user.entity';
@@ -11,8 +6,6 @@ import { UserRepository } from './user.repository';
 import { Not } from 'typeorm';
 import { Wallet } from '@src/wallet/wallet.entity';
 import { WalletService } from '@src/wallet/wallet.service';
-import { AuthService } from '@src/auth/auth.service';
-import { AccessTokenInterface } from '@src/auth/auth.type';
 
 @Injectable()
 export class UserService {

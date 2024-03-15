@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@src/user/user.entity';
+import { AccessTokenInterface } from '../auth.type';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,10 +15,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: Partial<User>) {
+  async validate(payload: Partial<AccessTokenInterface>) {
     return {
       uuid: payload.uuid,
-      address: 'payload.address',
+      address: payload.address,
       role: payload.role,
     };
   }

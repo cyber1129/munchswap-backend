@@ -459,7 +459,6 @@ export class SwapOfferService {
 
   async getUserGettingOffers(userUuid: string, getOfferDto: GetOfferDto) {
     const user = await this.userService.findByUuid(userUuid);
-    console.log('user', user);
 
     const [swapOfferIds, itemCount] =
       await this.swapOfferRepository.findAndCount({

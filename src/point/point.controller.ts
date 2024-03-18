@@ -24,10 +24,20 @@ export class PointController {
   @ApiResponse(ApiResponseHelper.success(PageDto<UserPoint>, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/users')
-  async getInscriptions(
-    @Request() req,
-    @Query() getUserPointDto: GetUserPointDto,
-  ) {
+  async getUserPoints(@Query() getUserPointDto: GetUserPointDto) {
     return this.pointService.getUserPoints(getUserPointDto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: `Get user point`,
+    tags: ['point'],
+  })
+  @ApiResponse(ApiResponseHelper.success(Number, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Get('/user')
+  async getUserPoint(@Request() req) {
+    return this.pointService.getUserPoint(req.user.uuid);
   }
 }

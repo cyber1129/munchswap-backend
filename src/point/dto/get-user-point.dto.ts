@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsNumber, IsOptional } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsInt, IsOptional } from 'class-validator';
 
 import { PageOptionsDto } from '@src/common/pagination/pagination.types';
 import { Type } from 'class-transformer';

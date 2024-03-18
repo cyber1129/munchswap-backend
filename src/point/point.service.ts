@@ -23,7 +23,9 @@ export class PointService {
   constructor(
     private readonly pointReposintory: PointRepository,
     private readonly userService: UserService,
-  ) {}
+  ) {
+    this.getUserPoint('8998c392-a559-4855-8e80-c5325413ef99');
+  }
 
   async addPoint(
     amount: number,
@@ -88,5 +90,13 @@ export class PointService {
     });
 
     return new PageDto(points, pageMetaDto);
+  }
+
+  async getUserPoint(userUuid: string): Promise<number> {
+    const point = await this.pointReposintory.sum('amount', {
+      user: { uuid: userUuid },
+    });
+
+    return point;
   }
 }

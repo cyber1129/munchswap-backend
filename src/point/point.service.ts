@@ -3,19 +3,27 @@ import { Injectable } from '@nestjs/common';
 import { PointRepository } from './point.repository';
 import { UserService } from '@src/user/user.service';
 import { SwapOffer } from '@src/swap-offer/swap-offer.entity';
-import { User } from '@src/user/user.entity';
+import { Role, User } from '@src/user/user.entity';
 import { Point } from './point.entity';
+import { GetUserPointDto } from './dto/get-user-point.dto';
+import { PageDto, PageMetaDto } from '@src/common/pagination/pagination.types';
 
-export type Time = 7 | 1 | -1;
+export type UserPoint = {
+  amount: number;
+  user: {
+    name: string;
+    role: Role;
+    avatar: string | null;
+    uuid: string;
+  };
+};
 
 @Injectable()
 export class PointService {
   constructor(
     private readonly pointReposintory: PointRepository,
     private readonly userService: UserService,
-  ) {
-    this.getUserPoints(7);
-  }
+  ) {}
 
   async addPoint(
     amount: number,
@@ -34,20 +42,51 @@ export class PointService {
     return savedPoint;
   }
 
-  async getUserPoints(time: Time): Promise<void> {
+  async getUserPoints(
+    getUserPointDto: GetUserPointDto,
+  ): Promise<PageDto<UserPoint>> {
     const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() - time);
+    currentDate.setDate(currentDate.getDate() - getUserPointDto.time);
 
-    const userPoints = await this.pointReposintory
+    const userPointQuery = await this.pointReposintory
       .createQueryBuilder('point')
       .select(['SUM(amount) as amount'])
       .leftJoinAndSelect('point.user', 'user')
-      .where('point.updated_at > :time', { time: currentDate })
       .groupBy('point.user_id')
       .addGroupBy('user.id')
-      .orderBy('amount', 'DESC')
-      .getRawAndEntities();
+      .orderBy('amount', 'DESC');
 
-    console.log('userPoints', userPoints);
+    if (getUserPointDto.time !== -1)
+      userPointQuery.where('point.updated_at > :time', { time: currentDate });
+
+    userPointQuery
+      .offset(
+        getUserPointDto.skip ??
+          (getUserPointDto.page - 1) * getUserPointDto.take,
+      )
+      .limit(getUserPointDto.take);
+
+    const itemCount = await this.userService.getRegisteredUserCount();
+    const userPoints = await userPointQuery.getRawMany();
+
+    const points: UserPoint[] = [];
+    userPoints.forEach((point) => {
+      points.push({
+        amount: point.amount,
+        user: {
+          name: point.user_name,
+          role: point.user_role,
+          avatar: point.user_avatar,
+          uuid: point.user_uuid,
+        },
+      });
+    });
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: getUserPointDto,
+    });
+
+    return new PageDto(points, pageMetaDto);
   }
 }

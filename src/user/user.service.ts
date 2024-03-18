@@ -63,7 +63,7 @@ export class UserService {
     return this.userRepository.findOne({ where: { id } });
   }
 
-  async getRegisteredUserCount(): Promise<Number> {
+  async getRegisteredUserCount(): Promise<number> {
     const count = await this.userRepository.count({
       where: {
         wallet: { paymentPubkey: Not('') },

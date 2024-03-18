@@ -22,6 +22,7 @@ import { GetOfferDto } from './dto/get-offer.dto';
 import { GetUserHistoryDto } from './dto/get-user-history.dto';
 import { WalletTypes } from '@src/wallet/wallet.entity';
 import { WalletService } from '@src/wallet/wallet.service';
+import { PointService } from '@src/point/point.service';
 
 @Injectable()
 export class SwapOfferService {
@@ -36,6 +37,7 @@ export class SwapOfferService {
     private inscriptionService: InscriptionService,
     private configService: ConfigService,
     private walletService: WalletService,
+    private pointService: PointService,
   ) {
     const networkType = this.configService.get('psbtConfig.network');
 
@@ -735,6 +737,23 @@ export class SwapOfferService {
 
         let pointAmount = 10;
 
+        const swapOffer = await this.getSwapOfferByTxId(tx.txId);
+
+        const swapItemCount =
+          swapOffer.buyerSwapInscription.length +
+          swapOffer.sellerSwapInscription.length;
+
+        if (swapItemCount >= 5) pointAmount *= 2.5;
+        else if (swapItemCount >= 2) pointAmount *= 1.5;
+
+        if (swapOffer.price > 0.0001) pointAmount *= 2;
+
+        await this.pointService.addPoint(
+          pointAmount,
+          swapOffer.buyer.user,
+          swapOffer,
+        );
+
         return isPushed;
       }),
     );
@@ -1313,5 +1332,19 @@ export class SwapOfferService {
         };
       }),
     );
+  }
+
+  async getSwapOfferByTxId(txId: string): Promise<SwapOffer> {
+    const swapOffer = await this.swapOfferRepository.findOne({
+      where: { txId },
+      relations: {
+        buyerSwapInscription: { inscription: { collection: true } },
+        sellerSwapInscription: { inscription: { collection: true } },
+        buyer: { user: true },
+        seller: { user: true },
+      },
+    });
+
+    return swapOffer;
   }
 }

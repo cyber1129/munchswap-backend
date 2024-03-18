@@ -28,7 +28,7 @@ export class Point {
   uuid: string;
 
   @ApiProperty({ description: `Amount`, maximum: 36 })
-  @Column({ type: 'int64', nullable: false })
+  @Column({ type: 'integer', nullable: false })
   amount: number;
 
   @Column({ type: 'integer', nullable: false })

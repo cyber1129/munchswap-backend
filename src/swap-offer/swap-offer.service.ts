@@ -732,6 +732,9 @@ export class SwapOfferService {
             status: OfferStatus.PUSHED,
           },
         );
+
+        let pointAmount = 10;
+
         return isPushed;
       }),
     );

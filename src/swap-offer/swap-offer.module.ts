@@ -13,9 +13,11 @@ import { BuyerSwapInscriptionRepository } from './buyer-swap-inscription.reposit
 import { SellerSwapInscriptionRepository } from './seller-swap-inscription.repository';
 import { WalletModule } from '@src/wallet/wallet.module';
 import { WalletService } from '@src/wallet/wallet.service';
+import { PointModule } from '@src/point/point.module';
+import { PointService } from '@src/point/point.service';
 
 @Module({
-  imports: [InscriptionModule, UserModule, PsbtModule, WalletModule],
+  imports: [InscriptionModule, UserModule, PsbtModule, WalletModule, PointModule],
   providers: [
     SwapOfferService,
     SwapOfferRepository,
@@ -24,7 +26,8 @@ import { WalletService } from '@src/wallet/wallet.service';
     InscriptionService,
     PsbtService,
     BuyerSwapInscription,
-    WalletService
+    WalletService,
+    PointService
   ],
   controllers: [SwapOfferController],
 })

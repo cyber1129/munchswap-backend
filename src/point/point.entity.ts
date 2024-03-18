@@ -27,9 +27,9 @@ export class Point {
   @Column({ type: 'varchar', nullable: false, length: 36 })
   uuid: string;
 
-  @ApiProperty({ description: `Inscription Id`, maximum: 36 })
-  @Column({ type: 'varchar', nullable: false })
-  inscriptionId: string;
+  @ApiProperty({ description: `Amount`, maximum: 36 })
+  @Column({ type: 'int64', nullable: false })
+  amount: number;
 
   @Column({ type: 'integer', nullable: false })
   collectionId: number;

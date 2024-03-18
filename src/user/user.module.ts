@@ -7,7 +7,6 @@ import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
 import { WalletModule } from '@src/wallet/wallet.module';
 import { WalletService } from '@src/wallet/wallet.service';
-import { AuthService } from '@src/auth/auth.service';
 
 @Module({
   imports: [forwardRef(() => AuthModule), WalletModule],

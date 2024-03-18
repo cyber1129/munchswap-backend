@@ -11,7 +11,6 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
-import { Collection } from '@src/collection/collection.entity';
 import { BuyerSwapInscription } from '@src/swap-offer/buyer-swap-inscription.entity';
 import { SellerSwapInscription } from '@src/swap-offer/seller-swap-inscription.entity';
 import { SwapOffer } from '@src/swap-offer/swap-offer.entity';
@@ -30,9 +29,6 @@ export class Point {
   @ApiProperty({ description: `Amount`, maximum: 36 })
   @Column({ type: 'integer', nullable: false })
   amount: number;
-
-  @Column({ type: 'integer', nullable: false })
-  collectionId: number;
 
   @ManyToOne(() => SwapOffer, (swapOffer) => swapOffer.point)
   swapOffer: SwapOffer;

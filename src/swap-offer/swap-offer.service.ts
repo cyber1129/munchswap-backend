@@ -744,13 +744,19 @@ export class SwapOfferService {
           swapOffer.sellerSwapInscription.length;
 
         if (swapItemCount >= 5) pointAmount *= 2.5;
-        else if (swapItemCount >= 2) pointAmount *= 1.5;
+        else if (swapItemCount > 2) pointAmount *= 1.5;
 
         if (swapOffer.price > 0.0001) pointAmount *= 2;
 
         await this.pointService.addPoint(
           pointAmount,
           swapOffer.buyer.user,
+          swapOffer,
+        );
+
+        await this.pointService.addPoint(
+          pointAmount,
+          swapOffer.seller.user,
           swapOffer,
         );
 

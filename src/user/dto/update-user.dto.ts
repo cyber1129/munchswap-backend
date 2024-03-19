@@ -16,19 +16,23 @@ export class UpdateUserDto {
     description: 'Display name',
   })
   @IsString()
+  @IsOptional()
   @MinLength(1)
   @MaxLength(128)
   name: string;
 
   @ApiProperty({
-    example: 'user@example.com',
+    example:
+      'cd16b907b5df2a083b6c03911f4bed57d1ab42de4cc4feadb7162b144dcba010i0',
     required: false,
     maximum: 255,
-    description: 'E-mail',
+    description: 'Avatar inscription',
   })
-  @IsEmail()
-  @MaxLength(255)
-  email: string;
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(128)
+  avatar: string;
 
   @ApiProperty({
     example: 'My ...',
@@ -38,58 +42,8 @@ export class UpdateUserDto {
     description: 'Bio',
   })
   @IsString()
+  @IsOptional()
   @MinLength(1)
   @MaxLength(255)
   bio: string;
-
-  @ApiProperty({
-    example: 'https://',
-    required: false,
-    minimum: 1,
-    maximum: 128,
-    description: 'Website',
-  })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(255)
-  @IsOptional()
-  website: string;
-
-  @ApiProperty({
-    example: 'https://',
-    required: false,
-    minimum: 1,
-    maximum: 128,
-    description: 'Twitter',
-  })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(255)
-  @IsOptional()
-  twitter: string;
-
-  @ApiProperty({
-    example: 'https://',
-    required: false,
-    minimum: 1,
-    maximum: 128,
-    description: 'Facebook',
-  })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(255)
-  @IsOptional()
-  facebook: string;
-
-  @ApiProperty({
-    example: 'tb1pn952y2hrpzf9gfnmsg0zht2smhn2lrzxz569vtpt23aj8wqgndmsc4g58d',
-    required: true,
-    minimum: 1,
-    maximum: 128,
-    description: 'Wallet payment Address',
-  })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(128)
-  paymentAddress: string;
 }

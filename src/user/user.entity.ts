@@ -36,6 +36,10 @@ export class User {
   @Column({ type: 'varchar', nullable: true, length: 100 })
   avatar: string;
 
+  @ApiProperty({ description: `Bio for your profile`, maximum: 100 })
+  @Column({ type: 'varchar', nullable: true, length: 100 })
+  bio: string;
+
   @ApiProperty({ description: 'Role', maximum: 255, required: false })
   @Column({ type: 'enum', enum: Role, nullable: false, default: Role.CUSTOMER })
   role: Role;

@@ -24,7 +24,6 @@ export class PointService {
     private readonly pointReposintory: PointRepository,
     private readonly userService: UserService,
   ) {
-    this.getUserPoint('8998c392-a559-4855-8e80-c5325413ef99');
   }
 
   async addPoint(

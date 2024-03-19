@@ -6,6 +6,8 @@ import {
   UseGuards,
   HttpStatus,
   Request,
+  Post,
+  Body,
 } from '@nestjs/common';
 
 import { AuthService } from '@src/auth/auth.service';
@@ -16,6 +18,7 @@ import { ApiResponseHelper } from '@src/common/helpers/api-response.helper';
 import { User } from './user.entity';
 import { Role } from '@src/auth/role/role.decorator';
 import { RoleGuard } from '@src/auth/role/role.guard';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -31,8 +34,18 @@ export class UserController {
   @ApiResponse(ApiResponseHelper.success(User, HttpStatus.OK))
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/user-info')
-  async getUserPushedOffers(@Request() req) {
+  async getUserInfo(@Request() req) {
     return this.userService.findByAddress(req.user.address);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description: `Update user info`, tags: ['User'] })
+  @ApiResponse(ApiResponseHelper.success(User, HttpStatus.OK))
+  @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
+  @Post('/update')
+  async updateUser(@Request() req, @Body() body: UpdateUserDto) {
+    return this.userService.updateUserInfo(body, req.user.uuid);
   }
 
   @ApiBearerAuth()

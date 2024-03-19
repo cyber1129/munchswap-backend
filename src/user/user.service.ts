@@ -6,6 +6,7 @@ import { UserRepository } from './user.repository';
 import { Not } from 'typeorm';
 import { Wallet } from '@src/wallet/wallet.entity';
 import { WalletService } from '@src/wallet/wallet.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -91,5 +92,16 @@ export class UserService {
     };
 
     return this.walletService.createWallet(wallet);
+  }
+
+  async updateUserInfo(body: UpdateUserDto, userId: string): Promise<User> {
+    const user = await this.findByUuid(userId);
+
+    if (user) {
+      await this.userRepository.update({ uuid: userId }, { ...body });
+      return this.findByUuid(userId);
+    }
+
+    throw new BadRequestException("Can not find the user")
   }
 }

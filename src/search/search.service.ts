@@ -95,8 +95,6 @@ export class SearchService {
         address,
       );
 
-      console.log('inscriptions', inscriptions);
-
       const allowInscriptions = inscriptions.filter((inscription) =>
         AllowedContentTypes.find(
           (contentType) => contentType === inscription.contentType,

@@ -345,8 +345,6 @@ export class SwapOfferService {
         { status: OfferStatus.FAILED },
       );
 
-      console.log('error', error);
-
       throw new BadRequestException(
         'Transaction failed to push, buyer should create a psbt again',
       );

@@ -166,11 +166,6 @@ export class InscriptionService {
 
       if (inscriptionInfo.buyNowActivity.length > 0) {
         if (inscriptionInfo.buyNowActivity[0].user.address !== address) {
-          console.log(
-            'inscriptionInfo.buyNowActivity[0].address',
-            inscriptionInfo.buyNowActivity[0].address,
-            address,
-          );
           inscriptionInfo.buyNowActivity = [];
         }
       }

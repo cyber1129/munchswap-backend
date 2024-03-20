@@ -35,7 +35,7 @@ export class UserController {
   @ApiResponse(ApiResponseHelper.validationError(`Validation failed`))
   @Get('/user-info')
   async getUserInfo(@Request() req) {
-    return this.userService.findByAddress(req.user.address);
+    return this.userService.findByUuid(req.user.uuid);
   }
 
   @ApiBearerAuth()

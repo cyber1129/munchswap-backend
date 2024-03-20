@@ -32,15 +32,10 @@ export class CollectionService {
     };
     const savedCollection = await this.collectionRepository.save(collection);
 
-    const saveInscriptions = body.inscriptionIds.map(
-      async (inscriptionId: string) => {
-        return this.inscriptionService.createInscription(
-          savedCollection.id,
-          inscriptionId,
-        );
-      },
+    await this.inscriptionService.createInscription(
+      savedCollection.id,
+      body.inscriptionIds,
     );
-    await Promise.all(saveInscriptions);
 
     return this.collectionRepository.findOne({
       where: {

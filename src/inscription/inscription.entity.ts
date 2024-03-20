@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  Unique,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
@@ -16,6 +17,7 @@ import { BuyerSwapInscription } from '@src/swap-offer/buyer-swap-inscription.ent
 import { SellerSwapInscription } from '@src/swap-offer/seller-swap-inscription.entity';
 
 @Entity('inscription')
+@Unique(['inscriptionId'])
 export class Inscription {
   @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn({ name: 'id' })

@@ -183,23 +183,14 @@ export class InscriptionService {
     return new PageDto(entities, pageMetaDto);
   }
 
-  async createInscription(collectionId: number, inscriptionId: string) {
-    const inscription = await this.inscriptionRepository.findOne({
-      where: { inscriptionId },
-    });
+  async createInscription(collectionId: number, inscriptionIds: string[]) {
+    const inscriptions = inscriptionIds.map((inscriptionId) =>
+      this.inscriptionRepository.create({ inscriptionId, collectionId }),
+    );
 
-    if (inscription)
-      return this.inscriptionRepository.update(
-        { inscriptionId },
-        { collectionId },
-      );
+    await this.inscriptionRepository.upsert(inscriptions, ['inscriptionId']);
 
-    const inscriptionEntity: Partial<Inscription> = {
-      collectionId,
-      inscriptionId,
-    };
-
-    this.inscriptionRepository.save(inscriptionEntity);
+    return this.findInscriptionByIds(inscriptionIds);
   }
 
   async checkInscriptionOwner(

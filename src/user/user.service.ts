@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 
 import { LoginUserDto } from '@src/auth/dto/login-user.dto';
 import { User } from './user.entity';
@@ -7,12 +12,15 @@ import { Not } from 'typeorm';
 import { Wallet } from '@src/wallet/wallet.entity';
 import { WalletService } from '@src/wallet/wallet.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PointService } from '@src/point/point.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly walletService: WalletService,
+    @Inject(forwardRef(() => PointService))
+    private readonly pointService: PointService,
   ) {}
 
   async findByAddress(address: string): Promise<User> {
@@ -102,6 +110,6 @@ export class UserService {
       return this.findByUuid(userId);
     }
 
-    throw new BadRequestException("Can not find the user")
+    throw new BadRequestException('Can not find the user');
   }
 }

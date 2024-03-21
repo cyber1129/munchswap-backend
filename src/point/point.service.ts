@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
 import { PointRepository } from './point.repository';
 import { UserService } from '@src/user/user.service';
@@ -22,7 +22,7 @@ export type UserPoint = {
 export class PointService {
   constructor(
     private readonly pointReposintory: PointRepository,
-    private readonly userService: UserService,
+    @Inject(forwardRef(() => UserService))    private readonly userService: UserService,
   ) {}
 
   async addPoint(

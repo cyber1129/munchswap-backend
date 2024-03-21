@@ -23,8 +23,7 @@ export class PointService {
   constructor(
     private readonly pointReposintory: PointRepository,
     private readonly userService: UserService,
-  ) {
-  }
+  ) {}
 
   async addPoint(
     amount: number,

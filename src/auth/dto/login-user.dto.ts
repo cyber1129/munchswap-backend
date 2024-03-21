@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { WalletTypes } from '@src/wallet/wallet.entity';
-import { IsEnum, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class LoginUserDto {
   @ApiProperty({
@@ -70,4 +76,17 @@ export class LoginUserDto {
   })
   @IsEnum(WalletTypes)
   walletType: WalletTypes;
+
+  @ApiProperty({
+    example: 'b7ae48d3-173b-4146-adf7-f712ee4e23d1	',
+    required: true,
+    minimum: 1,
+    maximum: 128,
+    description: 'Refferal User Id',
+  })
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(128)
+  referral?: string;
 }

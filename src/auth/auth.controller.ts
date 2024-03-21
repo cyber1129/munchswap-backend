@@ -39,7 +39,7 @@ export class AuthController {
     @Body() body: LoginUserDto,
     @Request() req,
   ): Promise<AccessToken> {
-    const accessToken = await this.authService.addWallet(body, req.user.uuod);
+    const accessToken = await this.authService.addWallet(body, req.user.uuid);
     return { accessToken };
   }
 

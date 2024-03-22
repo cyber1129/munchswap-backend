@@ -96,6 +96,6 @@ export class PointService {
       user: { uuid: userUuid },
     });
 
-    return point;
+    return point ?? 0;
   }
 }

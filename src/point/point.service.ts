@@ -22,7 +22,8 @@ export type UserPoint = {
 export class PointService {
   constructor(
     private readonly pointReposintory: PointRepository,
-    @Inject(forwardRef(() => UserService))    private readonly userService: UserService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {}
 
   async addPoint(
@@ -66,7 +67,7 @@ export class PointService {
       )
       .limit(getUserPointDto.take);
 
-    const itemCount = await this.userService.getRegisteredUserCount();
+    const itemCount = await userPointQuery.getCount();
     const userPoints = await userPointQuery.getRawMany();
 
     const points: UserPoint[] = [];

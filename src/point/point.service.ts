@@ -29,7 +29,7 @@ export class PointService {
   async addPoint(
     amount: number,
     user: User,
-    swapOffer: SwapOffer,
+    swapOffer?: SwapOffer,
     description?: string,
   ): Promise<Point> {
     const pointEntity = this.pointReposintory.create({

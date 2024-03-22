@@ -65,6 +65,15 @@ export class UserService {
     } else {
       await this.walletService.createWallet(walletEntity);
     }
+
+    if (body.referral) {
+      const referedUser = await this.findByUuid(body.referral);
+
+      if (referedUser) {
+        await this.pointService.addPoint(10, referedUser);
+      }
+    }
+
     return this.findByUuid(user.uuid);
   }
 

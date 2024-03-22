@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
   OneToMany,
   ManyToOne,
+  Unique,
 } from 'typeorm';
 
 export enum WalletTypes {
@@ -21,6 +22,7 @@ export enum WalletTypes {
 }
 
 @Entity('wallet')
+@Unique(['address'])
 export class Wallet {
   @Exclude({ toPlainOnly: true })
   @PrimaryGeneratedColumn({ name: 'id' })

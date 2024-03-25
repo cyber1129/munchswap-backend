@@ -70,7 +70,7 @@ export class UserService {
       const referedUser = await this.findByUuid(body.referral);
 
       if (referedUser) {
-        await this.pointService.addPoint(10, referedUser);
+        await this.pointService.addPoint(5, referedUser);
       }
     }
 

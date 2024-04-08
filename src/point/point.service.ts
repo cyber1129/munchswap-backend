@@ -7,6 +7,9 @@ import { Role, User } from '@src/user/user.entity';
 import { Point } from './point.entity';
 import { GetUserPointDto } from './dto/get-user-point.dto';
 import { PageDto, PageMetaDto } from '@src/common/pagination/pagination.types';
+import { MoreThan } from 'typeorm';
+import { UserRepository } from '@src/user/user.repository';
+import { GetUserPointsDto } from './dto/get-user-points.dto copy';
 
 export type UserPoint = {
   amount: number;
@@ -22,6 +25,7 @@ export type UserPoint = {
 export class PointService {
   constructor(
     private readonly pointReposintory: PointRepository,
+    private readonly userRepository: UserRepository,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
   ) {}
@@ -44,10 +48,10 @@ export class PointService {
   }
 
   async getUserPoints(
-    getUserPointDto: GetUserPointDto,
+    getUserPointsDto: GetUserPointsDto,
   ): Promise<PageDto<UserPoint>> {
     const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() - getUserPointDto.time);
+    currentDate.setDate(currentDate.getDate() - getUserPointsDto.time);
 
     const userPointQuery = await this.pointReposintory
       .createQueryBuilder('point')
@@ -57,15 +61,15 @@ export class PointService {
       .addGroupBy('user.id')
       .orderBy('amount', 'DESC');
 
-    if (getUserPointDto.time !== -1)
+    if (getUserPointsDto.time !== -1)
       userPointQuery.where('point.updated_at > :time', { time: currentDate });
 
     userPointQuery
       .offset(
-        getUserPointDto.skip ??
-          (getUserPointDto.page - 1) * getUserPointDto.take,
+        getUserPointsDto.skip ??
+          (getUserPointsDto.page - 1) * getUserPointsDto.take,
       )
-      .limit(getUserPointDto.take);
+      .limit(getUserPointsDto.take);
 
     const itemCount = await userPointQuery.getCount();
     const userPoints = await userPointQuery.getRawMany();
@@ -85,17 +89,50 @@ export class PointService {
 
     const pageMetaDto = new PageMetaDto({
       itemCount,
-      pageOptionsDto: getUserPointDto,
+      pageOptionsDto: getUserPointsDto,
     });
 
     return new PageDto(points, pageMetaDto);
   }
 
-  async getUserPoint(userUuid: string): Promise<number> {
-    const point = await this.pointReposintory.sum('amount', {
-      user: { uuid: userUuid },
-    });
+  async getUserPoint(
+    userUuid: string,
+    getUserPointDto: GetUserPointDto,
+  ): Promise<{ point: number; position: number }> {
+    const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() - getUserPointDto.time);
 
-    return point ?? 0;
+    let point;
+    if (getUserPointDto.time === -1)
+      point = await this.pointReposintory.sum('amount', {
+        user: { uuid: userUuid },
+      });
+    else
+      point = await this.pointReposintory.sum('amount', {
+        user: { uuid: userUuid },
+        updatedAt: MoreThan(currentDate),
+      });
+
+    const userPointQuery = await this.userRepository
+      .createQueryBuilder('user')
+      .select(['user_points.user_id as user_id'])
+      .addFrom((subquery) => {
+        subquery
+          .select(['SUM(amount) as sum_value', 'point.user_id as user_id'])
+          .from(Point, 'point')
+          .groupBy('point.user_id')
+          .orderBy('sum_value', 'DESC');
+
+        if (getUserPointDto.time !== -1)
+          subquery.where('point.updated_at > :time', { time: currentDate });
+
+        return subquery;
+      }, 'user_points')
+      .where('user_points.user_id = user.id')
+      .andWhere(`user_points.sum_value > ${point ?? 0}`);
+
+    const itemCount = await userPointQuery.getCount();
+
+    return { point: point ?? 0, position: itemCount + 1 };
   }
 }

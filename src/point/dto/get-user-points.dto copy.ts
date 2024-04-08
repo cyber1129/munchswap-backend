@@ -4,7 +4,7 @@ import { IsInt, IsOptional } from 'class-validator';
 import { PageOptionsDto } from '@src/common/pagination/pagination.types';
 import { Type } from 'class-transformer';
 
-export class GetUserPointDto {
+export class GetUserPointsDto extends PageOptionsDto {
   @ApiPropertyOptional({
     minimum: -1,
     default: -1,

@@ -53,10 +53,16 @@ export class PointService {
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() - getUserPointsDto.time);
 
-    const userPointQuery = await this.pointReposintory
-      .createQueryBuilder('point')
-      .select(['SUM(amount) as amount'])
-      .leftJoinAndSelect('point.user', 'user')
+    const userPointQuery = await this.userRepository
+      .createQueryBuilder('user')
+      .select([
+        'SUM(point.amount) as amount',
+        'user.name as user_name',
+        'user.role as user_role',
+        'user.avatar as user_avatar',
+        'user.uuid as user_uuid',
+      ])
+      .leftJoin('user.point', 'point')
       .groupBy('point.user_id')
       .addGroupBy('user.id')
       .orderBy('amount', 'DESC');
